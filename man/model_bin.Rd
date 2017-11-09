@@ -4,32 +4,42 @@
 \alias{model_bin}
 \title{Obtain readcounts adjusted for several forms of technical and biological background noise}
 \usage{
-model_bin(bins_dir, bin_index, output_dir, subsample_size = NA,
-  gamlss_cycles = 200, gamlss_crit = 0.1, log_file = TRUE)
+model_bin(bin, subsample_size = NA, gamlss_cycles = 200,
+  gamlss_crit = 0.1, log_file = NA)
 }
 \arguments{
-\item{bins_dir}{Directory containing putative interactions that are binned by distance.}
-
-\item{bin_index}{Index of the bin to be processed.}
-
-\item{output_dir}{Directory where the parametrized model and adjusted readcounts will be stored. Will be created if it does not exist.}
+\item{bin}{Data table containing putative interactions in the same distance bin, a subset of the inter.}
 
 \item{subsample_size}{Number of interactions based on which the null-model is parametrized.}
 
 \item{gamlss_cycles}{GAMLSS maximum number of cycles for convergence (see gamlss::gamlss.control).}
 
 \item{gamlss_crit}{GAMLSS convergence criterion (see gamlss::gamlss.control).}
+
+\item{log_file}{Path to a log file.}
 }
 \value{
 List containing the path to the output directory, the null model, and the adjusted read counts.
 }
 \description{
-Parametrizes a negative binomial null model for the readcounts in a given distance bin. Covariates are the distance between an interaction's bait and prey fragments, their lengths, and transchromosomal bait activity. Randomized quantile residuals computed from this model are taken as noise-adjusted readcounts and stored on disk.
+Parametrizes a negative binomial null model for the readcounts in a given distance bin. Covariates are the distance between an interaction's bait and prey fragments, their lengths, and transchromosomal bait activity. Randomized quantile residuals computed from this model are taken as noise-adjusted readcounts.
 }
 \examples{
-# fits_dir = paste0(base,"/fits")
+base = system.file("extdata",package="peaky")
 
-for(bin_index in 1:8){
-  \dontrun{model_bin(bins_dir,bin_index,output_dir=fits_dir)}
+interactions_file = paste0(base,"/counts.tsv")
+bins_dir = paste0(base,"/bins")
+fragments_file = paste0(base,"/fragments.bed")
+
+interactions = data.table::fread(interactions_file)
+fragments = data.table::fread(fragments_file)
+
+\donttest{
+BI = bin_interactions(interactions, fragments, bins=50)
+BM = model_bin(BI$binned_interactions[dist.bin==2,])
+
+print(BM)
+plot(BM$fit)
 }
+
 }

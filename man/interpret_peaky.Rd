@@ -2,31 +2,49 @@
 % Please edit documentation in R/peaky.R
 \name{interpret_peaky}
 \alias{interpret_peaky}
-\title{Interprets RJMCMC results}
+\title{Interprets models fitted with peaky}
 \usage{
-interpret_peaky(rjmcmclist, index, baits_dir, output_dir, omega_power)
+interpret_peaky(bait, peaks, omega_power, log_file = NA)
 }
 \arguments{
+\item{peaks}{The models fitted by peaky.}
+
+\item{omega_power}{The same value as used when running peaky, i.e. the expected decay of adjusted read counts around a truly interacting prey. See details.}
+
 \item{rjmcmclist}{Path to the list of RJMCMC results to be interpreted.}
-
-\item{index}{Which RJMCMC result on the list to process, with 1 corresponding to the first one on the list.}
-
-\item{output_dir}{Directory where the merged RJMCMC results and bait information will be stored, one file per bait. Will be created if it does not exist.}
-
-\item{omega_power}{The same value as used when running peaky, i.e. the expected decay of adjusted read counts around a truly interacting prey.}
 }
 \value{
 The output directory.
+
+Details.
+The steepness of the function to be fitted to putative peaks is determined by \eqn{\omega} according to \eqn{\beta \exp{- \abs{\omega * d}}}, where \eqn{\beta} represents peak height and \eqn{d} the distance from the center of the peak in bp.
 }
 \description{
 Extracts the marginal posterior probabilities of contact and other relevant statistics from the RJMCMC results and merges these with bait-associated information.
 }
 \examples{
-base = "/local/data/public/hic/demo"
+base = system.file("extdata",package="peaky")
+
 interactions_file = paste0(base,"/counts.tsv")
 bins_dir = paste0(base,"/bins")
 fragments_file = paste0(base,"/fragments.bed")
 
-\dontrun{bin_interactions(interactions_file, fragments_file, output_dir=bins_dir)}
+interactions = data.table::fread(interactions_file)
+fragments = data.table::fread(fragments_file)
 
+BI = bin_interactions(interactions, fragments, bins=50)
+
+data.table::setorder(BI$binned_interactions, dist.bin)
+
+relevant_bins = 1:8
+BI$binned_interactions = BI$binned_interactions[dist.bin\%in\%relevant_bins,]
+RES = sapply(relevant_bins, function(x,BI){ model_bin(BI$binned_interactions[dist.bin==x,])$residuals }, BI=BI)
+
+BTS = split_baits(BI$binned_interactions, unlist(RES))
+
+relevant_bait = BTS[baitID==618421]
+omega_power=4.7
+PKS = (relevant_bait, omega_power, iterations=1e6)
+
+interpret_peaky(relevant_bait,PKS, omega_power)
 }
