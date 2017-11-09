@@ -1,13 +1,12 @@
-Package: peaky
-Title: What the Package Does (one line, title case)
+Package: Peaky
+Title: Capture Hi-C calling algorithm
 Version: 0.0.0.9000
-Authors@R: person("First", "Last", email = "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
-Depends: R (>= 3.4.2)
+Authors@R: person("Chris", "Eijsbouts", email = "c@q.gd", role = c("aut", "cre"))
+Description: Peaky maps physical contacts between different regions of DNA by recognizing peaks in a Capture Hi-C (CHi-C) signal. It accounts for technical and biological noise, and subsequently finds DNA fragments around which the residual signal peaks and then decays with distance. The algorithm finds sets of locations at which peaks of varying strengths combinedly explain the normalized CHi-C signal. 
+Depends: R (>= 3.3.2)
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1
-Suggests: knitr,
-    rmarkdown
+Suggests: knitr, rmarkdown
 VignetteBuilder: knitr
