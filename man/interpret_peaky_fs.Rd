@@ -51,8 +51,10 @@ for(i in 1:49){
  peaky_fs(baitlist,i,output_dir=rjmcmc_dir,omega_power=omega_power)
 }
 
+rjmcmc_list(rjmcmc_dir)
+
 rjmcmclist = paste0(rjmcmc_dir,"/rjmcmclist.txt")
 baits_rjmcmc_dir = paste0(base,"/baits_rjmcmc")
-interpret_peaky(rjmcmclist,1,omega_power,baits_dir,baits_rjmcmc_dir)
+interpret_peaky_fs(rjmcmclist,1,omega_power,baits_dir,baits_rjmcmc_dir)
 }
 }

@@ -4,7 +4,7 @@
 \alias{bin_interactions_fs}
 \title{Wrapper for bin_interactions() that interacts with the filesystem}
 \usage{
-bin_interactions_fs(interactions_file, fragments_file, output_dir, bins = 50)
+bin_interactions_fs(interactions_file, fragments_file, output_dir, bins = 5)
 }
 \arguments{
 \item{interactions_file}{Path to (tsv or csv) file containing putative interactions. Its first line must state the columns names: baitID, preyID, N. Subsequent lines report one putative interaction each: a bait fragment ID, prey fragment ID and readcount.}
@@ -23,13 +23,12 @@ Places putative interactions into equally-sized bins based on the distances they
 }
 \examples{
 base = system.file("extdata",package="peaky")
-interactions_file = paste0(base,"/counts.tsv")
-bins_dir = paste0(base,"/bins")
-fragments_file = paste0(base,"/fragments.bed")
 
+interactions_file = paste0(base,"/counts.tsv")
+fragments_file = paste0(base,"/fragments.bed")
+bins_dir = paste0(base,"/bins")
 \donttest{
 BI = bin_interactions_fs(interactions_file, fragments_file, output_dir=bins_dir)
 print(BI)
 }
-
 }

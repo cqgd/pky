@@ -32,19 +32,19 @@ fragments_file = paste0(base,"/fragments.bed")
 interactions = data.table::fread(interactions_file)
 fragments = data.table::fread(fragments_file)
 
-BI = bin_interactions(interactions, fragments, bins=50)
+BI = bin_interactions(interactions, fragments, bins=5)
 
-data.table::setorder(BI$binned_interactions, dist.bin)
+data.table::setorder(BI$interactions, dist.bin)
 
 relevant_bins = 1:8
-BI$binned_interactions = BI$binned_interactions[dist.bin\%in\%relevant_bins,]
-RES = sapply(relevant_bins, function(x,BI){ model_bin(BI$binned_interactions[dist.bin==x,])$residuals }, BI=BI)
+BI$interactions = BI$interactions[dist.bin\%in\%relevant_bins,]
+RES = sapply(relevant_bins, function(x,BI){ model_bin(BI$interactions[dist.bin==x,])$residuals }, BI=BI)
 
-BTS = split_baits(BI$binned_interactions, unlist(RES))
+BTS = split_baits(BI$interactions, unlist(RES))
 
 relevant_bait = BTS[baitID==618421]
 omega_power=4.7
-PKS = (relevant_bait, omega_power, iterations=1e6)
+PKS = peaky(relevant_bait, omega_power, iterations=1e6)
 
-interpret_peaky(relevant_bait,PKS, omega_power)
+interpret_peaky(relevant_bait, PKS, omega_power)
 }

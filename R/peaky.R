@@ -27,28 +27,27 @@ note = function(logfile=NA,logtime=T,...){
 #'
 #' Places putative interactions into equally-sized bins based on the distances they span.
 #'
-#' @param interactions_file Data table containing putative interactions. Columns called baitID, preyID, N, storing the bait fragment ID, prey fragment ID and readcount, respectively.
-#' @param fragments_file Data table containing fragment information. Columns called chrom, chromStart, chromEnd, ID, storing the chromosome, starting coordinate, ending coordinate and ID of a fragment, respectively.
+#' @param interactions Data table containing putative interactions. Columns called baitID, preyID, N, storing the bait fragment ID, prey fragment ID and readcount, respectively.
+#' @param fragments Data table containing fragment information. Columns called chrom, chromStart, chromEnd, ID, storing the chromosome, starting coordinate, ending coordinate and ID of a fragment, respectively.
 #' @param bins Number of bins to place the interactions into.
 #' @param log_file Path to a log file.
-#' @return List containing the binned interactions ($binned_interactions) and an overview of bins ($overview).
+#' @return List containing the binned interactions ($interactions) and an overview of bins ($bins).
 #'
 #' @examples
 #' base = system.file("extdata",package="peaky")
 #'
 #' interactions_file = paste0(base,"/counts.tsv")
-#' bins_dir = paste0(base,"/bins")
 #' fragments_file = paste0(base,"/fragments.bed")
 #'
 #' interactions = data.table::fread(interactions_file)
 #' fragments = data.table::fread(fragments_file)
 #'
-#' \donttest{BI = bin_interactions(interactions, fragments, bins=20)}
+#' \donttest{BI = bin_interactions(interactions, fragments, bins=5)}
 #' print(BI)
 #'
 #' @export
 
-bin_interactions = function(interactions, fragments, bins=50, log_file=NA){
+bin_interactions = function(interactions, fragments, bins=5, log_file=NA){
   D = interactions; rm(interactions)
   L = log_file; rm(log_file)
 
@@ -57,8 +56,6 @@ bin_interactions = function(interactions, fragments, bins=50, log_file=NA){
   setnames(fragments,c("chr","start","end","ID"))
 
   note(L,T,"Calculating fragment characteristics...")
-  print(fragments)
-  print(is.data.table(fragments))
   fragments = fragments[,.(chr, mid=round((end+start)/2), length=end-start, ID)]
 
   note(L,T,"Adding fragment characteristics for baits...")
@@ -88,7 +85,7 @@ bin_interactions = function(interactions, fragments, bins=50, log_file=NA){
   overview = D[,.(dist.abs.min=min(abs(dist)),dist.abs.max=max(abs(dist)),interactions=.N),by=dist.bin][order(dist.abs.min),]
 
   note(L,T,"Done.")
-  return(list(binned_interactions=D,overview=overview))
+  return(list(interactions=D,bins=overview))
 }
 
 #' Wrapper for bin_interactions() that interacts with the filesystem
@@ -103,18 +100,17 @@ bin_interactions = function(interactions, fragments, bins=50, log_file=NA){
 #'
 #' @examples
 #' base = system.file("extdata",package="peaky")
-#' interactions_file = paste0(base,"/counts.tsv")
-#' bins_dir = paste0(base,"/bins")
-#' fragments_file = paste0(base,"/fragments.bed")
 #'
+#' interactions_file = paste0(base,"/counts.tsv")
+#' fragments_file = paste0(base,"/fragments.bed")
+#' bins_dir = paste0(base,"/bins")
 #' \donttest{
 #' BI = bin_interactions_fs(interactions_file, fragments_file, output_dir=bins_dir)
 #' print(BI)
 #' }
-#'
 #' @export
 
-bin_interactions_fs  = function(interactions_file, fragments_file, output_dir, bins=50){
+bin_interactions_fs  = function(interactions_file, fragments_file, output_dir, bins=5){
   L = paste0(output_dir,"/log_bins.txt")
   if(!dir.exists(output_dir)){dir.create(output_dir,recursive=TRUE)}
   write("BINNING\n",file=L,append=FALSE,sep="")
@@ -134,12 +130,12 @@ bin_interactions_fs  = function(interactions_file, fragments_file, output_dir, b
   }
 
   note(L,T,"Saving binned interactions:")
-  by(BI$binned_interactions, BI$binned_interactions$dist.bin, FUN=save_bin, output_dir=output_dir, bins=bins) #Extra 'custom' columns from the input file are saved as well.
+  by(BI$interactions, BI$interactions$dist.bin, FUN=save_bin, output_dir=output_dir, bins=bins) #Extra 'custom' columns from the input file are saved as well.
 
   note(L,T,"Saving bin details to ",output_dir,"/bins.txt")
-  fwrite(BI$overview,file=paste0(output_dir,"/bins.txt"),sep=" ",na=0)
+  fwrite(BI$bins,file=paste0(output_dir,"/bins.txt"),sep=" ",na=0)
 
-  return(list(output_dir=output_dir, binned_interactions=BI$binned_interactions, overview=BI$overview))
+  return(list(output_dir=output_dir, interactions=BI$interactions, bins=BI$bins))
 }
 
 
@@ -155,12 +151,12 @@ bin_interactions_fs  = function(interactions_file, fragments_file, output_dir, b
 #'
 #' Parametrizes a negative binomial null model for the readcounts in a given distance bin. Covariates are the distance between an interaction's bait and prey fragments, their lengths, and transchromosomal bait activity. Randomized quantile residuals computed from this model are taken as noise-adjusted readcounts.
 #'
-#' @param bin Data table containing putative interactions in the same distance bin, a subset of the inter.
-#' @param subsample_size Number of interactions based on which the null-model is parametrized.
+#' @param bin Data table containing putative interactions in the same distance bin.
+#' @param subsample_size Number of interactions based on which the null-model is parametrized. By default, all are used.
 #' @param gamlss_cycles GAMLSS maximum number of cycles for convergence (see gamlss::gamlss.control).
 #' @param gamlss_crit GAMLSS convergence criterion (see gamlss::gamlss.control).
 #' @param log_file Path to a log file.
-#' @return List containing the path to the output directory, the null model, and the adjusted read counts.
+#' @return List containing the fitted null model ($fit) and the adjusted readcounts ($residuals).
 #'
 #' @examples
 #' base = system.file("extdata",package="peaky")
@@ -173,8 +169,8 @@ bin_interactions_fs  = function(interactions_file, fragments_file, output_dir, b
 #' fragments = data.table::fread(fragments_file)
 #'
 #' \donttest{
-#' BI = bin_interactions(interactions, fragments, bins=50)
-#' BM = model_bin(BI$binned_interactions[dist.bin==2,])
+#' BI = bin_interactions(interactions, fragments, bins=5)
+#' BM = model_bin(BI$interactions[dist.bin==2,])
 #'
 #' print(BM)
 #' plot(BM$fit)
@@ -221,7 +217,7 @@ model_bin = function(bin, subsample_size=NA, gamlss_cycles=200, gamlss_crit=0.1,
 #' @param bins_dir Directory containing putative interactions that are binned by distance.
 #' @param bin_index Index of the bin to be processed.
 #' @param output_dir Directory where the parametrized model and adjusted readcounts will be stored. Will be created if it does not exist.
-#' @param subsample_size Number of interactions based on which the null-model is parametrized.
+#' @param subsample_size Number of interactions based on which the null-model is parametrized. By default, all are used.
 #' @param gamlss_cycles GAMLSS maximum number of cycles for convergence (see gamlss::gamlss.control).
 #' @param gamlss_crit GAMLSS convergence criterion (see gamlss::gamlss.control).
 #' @return List containing the path to the output directory, the null model, and the adjusted read counts.
@@ -277,40 +273,32 @@ model_bin_fs = function(bins_dir,bin_index,output_dir,subsample_size=NA,gamlss_c
 ######################################################
 #' Regroups putative interactions by bait and calculates p-values under the negative binomial model
 #'
-#' Calculates and merges the p-values and residuals (adjusted read counts) for putative interactions under the negative binomial model with the bin-wise data.
+#' Merges bin-wise data, calculates the p-values and residuals (adjusted read counts) for putative interactions under the negative binomial model. Regroups putative interactions by bait rather than by distance bin.
 #'
-#' @param bins_dir Directory containing putative interactions that are binned by distance.
-#' @param residuals_dir Directory where the adjusted read counts from each distance bin are stored.
-#' @param output_dir Directory where all putative interactive will be stored, one file per bait. Will be created if it does not exist.
-#' @param indices The array of distance bins of which the baits to be processed. These must all have had null models fitted.
-#' @param plots Whether adjusted readcounts are to be plotted aganst distance and stored for each bait.
+#' @param bins List of data tables containing putative interactions that are binned by distance.
+#' @param residuals List containing residuals (adjusted read counts) for each bin (matching the interaction order).
 #' @param log_file Path to a log file.
 #' @return Data table with p-values, residuals and putative interaction attributes that can be sorted or split by bait ID.
 #'
 #' @examples
 #' base = system.file("extdata",package="peaky")
-#
 #' interactions_file = paste0(base,"/counts.tsv")
-#' bins_dir = paste0(base,"/bins")
 #' fragments_file = paste0(base,"/fragments.bed")
-#
 #' interactions = data.table::fread(interactions_file)
 #' fragments = data.table::fread(fragments_file)
-#
-#' BI = bin_interactions(interactions, fragments, bins=50)
-#
-#' data.table::setorder(BI$binned_interactions, dist.bin)
-#
-#' relevant_bins = 1:8
-#' BI$binned_interactions = BI$binned_interactions[dist.bin%in%relevant_bins,]
-#' RES = sapply(relevant_bins, function(x,BI){ model_bin(BI$binned_interactions[dist.bin==x,])$residuals }, BI=BI)
 #'
-#' split_baits(BI$binned_interactions, unlist(RES))
+#' BI = bin_interactions(interactions, fragments, bins=5)
+#' models = by(BI$interactions, BI$interactions$dist.bin, model_bin, subsample_size=1000)
+#' residuals = lapply(models, "[[", "residuals")
+#' bins = split(BI$interactions, BI$interactions$dist.bin)
+#'
+#' split_baits(bins, residuals)
 #'
 #' @export
 
 
 split_baits = function(bins, residuals, log_file=NA){
+  bins = rbindlist(bins)
   L = log_file; rm(log_file)
 
   pvalues = function(residuals_set) {
@@ -324,6 +312,7 @@ split_baits = function(bins, residuals, log_file=NA){
   note(L,T,"Calculating p-values and performing bin-wise FDR-adjustments...")
   ps = rbindlist(lapply(residuals,pvalues))
 
+  residuals = unlist(residuals)
   D = cbind(bins,residual=residuals,ps)
   return(D)
 
@@ -336,7 +325,7 @@ split_baits = function(bins, residuals, log_file=NA){
 #' @param bins_dir Directory containing putative interactions that are binned by distance.
 #' @param residuals_dir Directory where the adjusted read counts from each distance bin are stored.
 #' @param output_dir Directory where all putative interactive will be stored, one file per bait. Will be created if it does not exist.
-#' @param indices The array of distance bins of which the baits to be processed. These must all have had null models fitted.
+#' @param indices Indices of distance bins whose baits are processed. These must all have had null models fitted.
 #' @param plots Whether adjusted readcounts are to be plotted aganst distance and stored for each bait.
 #' @return The output directory.
 #'
@@ -350,13 +339,13 @@ split_baits = function(bins, residuals, log_file=NA){
 #'
 #' fits_dir = paste0(base,"/fits")
 #'
-#' for(bin_index in 1:8){
-#'   model_bin_fs(bins_dir,bin_index,output_dir=fits_dir)
+#' for(bin_index in 1:5){
+#'   model_bin_fs(bins_dir,bin_index,output_dir=fits_dir,subsample_size=1000)
 #' }
 #'
 #' baits_dir = paste0(base,"/baits")
 #'
-#' split_baits_fs(bins_dir,residuals_dir = fits_dir, indices=1:8, output_dir = baits_dir)
+#' split_baits_fs(bins_dir,residuals_dir = fits_dir, indices=1:5, output_dir = baits_dir)
 #'
 #' @export
 
@@ -369,12 +358,12 @@ split_baits_fs = function(bins_dir, residuals_dir, indices, output_dir, plots=TR
   residual_files = paste0(residuals_dir,"/residuals_",indices,".rds")
 
   note(L,T,"Loading bins..."); note(L,F,bin_files)
-  bins = sapply(bin_files,function(file){readRDS(file)},simplify = FALSE)
-  bins = rbindlist(bins)
+  bins = lapply(bin_files,readRDS)
+  #bins = rbindlist(bins)
 
   note(L,T,"Loading residuals..."); note(L,F,residual_files)
-  residuals = sapply(residual_files,function(file){readRDS(file)},simplify = FALSE)
-  residuals = unlist(residuals)
+  residuals = lapply(residual_files,readRDS)
+  #residuals = unlist(residuals)
 
   D = split_baits(bins, residuals, log_file=L)
 
@@ -441,18 +430,17 @@ split_baits_fs = function(bins_dir, residuals_dir, indices, output_dir, plots=TR
 #' interactions = data.table::fread(interactions_file)
 #' fragments = data.table::fread(fragments_file)
 #'
-#' BI = bin_interactions(interactions, fragments, bins=50)
+#' BI = bin_interactions(interactions, fragments, bins=5)
 #'
-#' data.table::setorder(BI$binned_interactions, dist.bin)
+#' data.table::setorder(BI$interactions, dist.bin)
 #'
 #' relevant_bins = 1:8
-#' BI$binned_interactions = BI$binned_interactions[dist.bin%in%relevant_bins,]
-#' RES = sapply(relevant_bins, function(x,BI){ model_bin(BI$binned_interactions[dist.bin==x,])$residuals }, BI=BI)
+#' BI$interactions = BI$interactions[dist.bin%in%relevant_bins,]
+#' RES = sapply(relevant_bins, function(x,BI){ model_bin(BI$interactions[dist.bin==x,])$residuals }, BI=BI)
 #'
-#' BTS = split_baits(BI$binned_interactions, RES)
+#' BTS = split_baits(BI$interactions, RES)
 #'
-#' relevant_bait = 618421
-#' peaky(BTS[baitID==relevant_bait], omega_power=4.7, iterations=10e3)
+#' peaky(BTS[baitID==618421], omega_power=4.7, iterations=10e3)
 #' @export
 
 peaky = function(bait, omega_power, iterations=1e6, min_interactions=20, log_file=NA){
@@ -605,7 +593,7 @@ mppi = function(thin,zero_min,zero_max,given_present=FALSE){
 #' @param filename Path
 #' @param bins Number of bins to place the interactions into.
 #' @param log_file Path to a log file.
-#' @return List containing the binned interactions ($binned_interactions) and an overview of bins ($overview).
+#' @return List containing the binned interactions ($interactions) and an overview of bins ($bins).
 #'
 #' @examples
 #' base = system.file("extdata",package="peaky")
@@ -617,7 +605,7 @@ mppi = function(thin,zero_min,zero_max,given_present=FALSE){
 #' interactions = data.table::fread(interactions_file)
 #' fragments = data.table::fread(fragments_file)
 #'
-#' \donttest{BI = bin_interactions(interactions, fragments, bins=20)}
+#' \donttest{BI = bin_interactions(interactions, fragments, bins=5)}
 #' print(BI)
 #'
 #' @export
@@ -657,19 +645,19 @@ rjmcmc_list = function(rjmcmc_dir, filename=NULL){
 #' interactions = data.table::fread(interactions_file)
 #' fragments = data.table::fread(fragments_file)
 #'
-#' BI = bin_interactions(interactions, fragments, bins=50)
+#' BI = bin_interactions(interactions, fragments, bins=5)
 #'
-#' data.table::setorder(BI$binned_interactions, dist.bin)
+#' data.table::setorder(BI$interactions, dist.bin)
 #'
 #' relevant_bins = 1:8
-#' BI$binned_interactions = BI$binned_interactions[dist.bin%in%relevant_bins,]
-#' RES = sapply(relevant_bins, function(x,BI){ model_bin(BI$binned_interactions[dist.bin==x,])$residuals }, BI=BI)
+#' BI$interactions = BI$interactions[dist.bin%in%relevant_bins,]
+#' RES = sapply(relevant_bins, function(x,BI){ model_bin(BI$interactions[dist.bin==x,])$residuals }, BI=BI)
 #'
-#' BTS = split_baits(BI$binned_interactions, unlist(RES))
+#' BTS = split_baits(BI$interactions, unlist(RES))
 #'
 #' relevant_bait = BTS[baitID==618421]
 #' omega_power=4.7
-#' PKS = (relevant_bait, omega_power, iterations=1e6)
+#' PKS = peaky(relevant_bait, omega_power, iterations=1e6)
 #'
 #' interpret_peaky(relevant_bait, PKS, omega_power)
 #' @export
@@ -737,7 +725,7 @@ interpret_peaky = function(bait, peaks, omega_power, log_file=NA){
                     "beta_mean","beta_mean_present","beta","beta_present",
                     "predicted","predicted_present")
   res[,pos:=loci]
-  res = merge(res,modules,by="pos",all.x=TRUE)
+  #res = merge(res,modules,by="pos",all.x=TRUE)
   res = res[order(as.numeric(gsub("P","",pos))),]
   D = cbind(D,res)
 

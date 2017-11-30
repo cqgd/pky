@@ -14,7 +14,7 @@ model_bin_fs(bins_dir, bin_index, output_dir, subsample_size = NA,
 
 \item{output_dir}{Directory where the parametrized model and adjusted readcounts will be stored. Will be created if it does not exist.}
 
-\item{subsample_size}{Number of interactions based on which the null-model is parametrized.}
+\item{subsample_size}{Number of interactions based on which the null-model is parametrized. By default, all are used.}
 
 \item{gamlss_cycles}{GAMLSS maximum number of cycles for convergence (see gamlss::gamlss.control).}
 

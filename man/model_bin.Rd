@@ -8,9 +8,9 @@ model_bin(bin, subsample_size = NA, gamlss_cycles = 200,
   gamlss_crit = 0.1, log_file = NA)
 }
 \arguments{
-\item{bin}{Data table containing putative interactions in the same distance bin, a subset of the inter.}
+\item{bin}{Data table containing putative interactions in the same distance bin.}
 
-\item{subsample_size}{Number of interactions based on which the null-model is parametrized.}
+\item{subsample_size}{Number of interactions based on which the null-model is parametrized. By default, all are used.}
 
 \item{gamlss_cycles}{GAMLSS maximum number of cycles for convergence (see gamlss::gamlss.control).}
 
@@ -19,7 +19,7 @@ model_bin(bin, subsample_size = NA, gamlss_cycles = 200,
 \item{log_file}{Path to a log file.}
 }
 \value{
-List containing the path to the output directory, the null model, and the adjusted read counts.
+List containing the fitted null model ($fit) and the adjusted readcounts ($residuals).
 }
 \description{
 Parametrizes a negative binomial null model for the readcounts in a given distance bin. Covariates are the distance between an interaction's bait and prey fragments, their lengths, and transchromosomal bait activity. Randomized quantile residuals computed from this model are taken as noise-adjusted readcounts.
@@ -35,8 +35,8 @@ interactions = data.table::fread(interactions_file)
 fragments = data.table::fread(fragments_file)
 
 \donttest{
-BI = bin_interactions(interactions, fragments, bins=50)
-BM = model_bin(BI$binned_interactions[dist.bin==2,])
+BI = bin_interactions(interactions, fragments, bins=5)
+BM = model_bin(BI$interactions[dist.bin==2,])
 
 print(BM)
 plot(BM$fit)

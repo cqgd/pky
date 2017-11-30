@@ -7,37 +7,30 @@
 split_baits(bins, residuals, log_file = NA)
 }
 \arguments{
+\item{bins}{List of data tables containing putative interactions that are binned by distance.}
+
+\item{residuals}{List containing residuals (adjusted read counts) for each bin (matching the interaction order).}
+
 \item{log_file}{Path to a log file.}
-
-\item{bins_dir}{Directory containing putative interactions that are binned by distance.}
-
-\item{residuals_dir}{Directory where the adjusted read counts from each distance bin are stored.}
-
-\item{output_dir}{Directory where all putative interactive will be stored, one file per bait. Will be created if it does not exist.}
-
-\item{indices}{The array of distance bins of which the baits to be processed. These must all have had null models fitted.}
-
-\item{plots}{Whether adjusted readcounts are to be plotted aganst distance and stored for each bait.}
 }
 \value{
 Data table with p-values, residuals and putative interaction attributes that can be sorted or split by bait ID.
 }
 \description{
-Calculates and merges the p-values and residuals (adjusted read counts) for putative interactions under the negative binomial model with the bin-wise data.
+Merges bin-wise data, calculates the p-values and residuals (adjusted read counts) for putative interactions under the negative binomial model. Regroups putative interactions by bait rather than by distance bin.
 }
 \examples{
 base = system.file("extdata",package="peaky")
 interactions_file = paste0(base,"/counts.tsv")
-bins_dir = paste0(base,"/bins")
 fragments_file = paste0(base,"/fragments.bed")
 interactions = data.table::fread(interactions_file)
 fragments = data.table::fread(fragments_file)
-BI = bin_interactions(interactions, fragments, bins=50)
-data.table::setorder(BI$binned_interactions, dist.bin)
-relevant_bins = 1:8
-BI$binned_interactions = BI$binned_interactions[dist.bin\%in\%relevant_bins,]
-RES = sapply(relevant_bins, function(x,BI){ model_bin(BI$binned_interactions[dist.bin==x,])$residuals }, BI=BI)
 
-split_baits(BI$binned_interactions, unlist(RES))
+BI = bin_interactions(interactions, fragments, bins=5)
+models = by(BI$interactions, BI$interactions$dist.bin, model_bin, subsample_size=1000)
+residuals = lapply(models, "[[", "residuals")
+bins = split(BI$interactions, BI$interactions$dist.bin)
+
+split_baits(bins, residuals)
 
 }
