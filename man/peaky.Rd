@@ -27,23 +27,17 @@ Fits additive models of peaks of varying strengths in various locations to the a
 }
 \examples{
 base = system.file("extdata",package="peaky")
-
 interactions_file = paste0(base,"/counts.tsv")
-bins_dir = paste0(base,"/bins")
 fragments_file = paste0(base,"/fragments.bed")
-
 interactions = data.table::fread(interactions_file)
 fragments = data.table::fread(fragments_file)
 
 BI = bin_interactions(interactions, fragments, bins=5)
+models = by(BI$interactions, BI$interactions$dist.bin, model_bin, subsample_size=1000)
+residuals = lapply(models, "[[", "residuals")
+bins = split(BI$interactions, BI$interactions$dist.bin)
 
-data.table::setorder(BI$interactions, dist.bin)
-
-relevant_bins = 1:8
-BI$interactions = BI$interactions[dist.bin\%in\%relevant_bins,]
-RES = sapply(relevant_bins, function(x,BI){ model_bin(BI$interactions[dist.bin==x,])$residuals }, BI=BI)
-
-BTS = split_baits(BI$interactions, RES)
+BTS = split_baits(bins, residuals)
 
 peaky(BTS[baitID==618421], omega_power=4.7, iterations=10e3)
 }

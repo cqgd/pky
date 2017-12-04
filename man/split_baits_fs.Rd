@@ -11,7 +11,7 @@ split_baits_fs(bins_dir, residuals_dir, indices, output_dir, plots = TRUE)
 
 \item{residuals_dir}{Directory where the adjusted read counts from each distance bin are stored.}
 
-\item{indices}{The array of distance bins of which the baits to be processed. These must all have had null models fitted.}
+\item{indices}{Indices of distance bins whose baits are processed. These must all have had null models fitted.}
 
 \item{output_dir}{Directory where all putative interactive will be stored, one file per bait. Will be created if it does not exist.}
 
@@ -33,12 +33,12 @@ bin_interactions_fs(interactions_file, fragments_file, output_dir=bins_dir)
 
 fits_dir = paste0(base,"/fits")
 
-for(bin_index in 1:8){
-  model_bin_fs(bins_dir,bin_index,output_dir=fits_dir)
+for(bin_index in 1:5){
+  model_bin_fs(bins_dir,bin_index,output_dir=fits_dir,subsample_size=1000)
 }
 
 baits_dir = paste0(base,"/baits")
 
-split_baits_fs(bins_dir,residuals_dir = fits_dir, indices=1:8, output_dir = baits_dir)
+split_baits_fs(bins_dir,residuals_dir = fits_dir, indices=1:5, output_dir = baits_dir)
 
 }

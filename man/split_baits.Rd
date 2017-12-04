@@ -17,7 +17,7 @@ split_baits(bins, residuals, log_file = NA)
 Data table with p-values, residuals and putative interaction attributes that can be sorted or split by bait ID.
 }
 \description{
-Merges bin-wise data, calculates the p-values and residuals (adjusted read counts) for putative interactions under the negative binomial model. Regroups putative interactions by bait rather than by distance bin.
+Merges bin-wise data, calculates the p-values for putative interactions under the negative binomial model. Regroups putative interactions by bait rather than by distance bin.
 }
 \examples{
 base = system.file("extdata",package="peaky")

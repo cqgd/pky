@@ -1,4 +1,4 @@
-Package: Peaky
+Package: peaky
 Title: Capture Hi-C calling algorithm
 Version: 0.0.0.9000
 Authors@R: person("Chris", "Eijsbouts", email = "c@q.gd", role = c("aut", "cre"))
