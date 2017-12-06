@@ -1,16 +1,26 @@
-#' @import data.table
-#' @import R2BGLiMS
-#' @importFrom ggplot2 cut_number ggplot geom_hline geom_vline geom_point xlab ylab ggtitle aes ggsave
-# @importFrom gamlss gamlss NBI
-# @importFrom gamlss.tr gen.trun
+######################################################
+### PACKAGE BUILD
+######################################################
 
+#Save first....
+if(exists("GO")){
+  library(devtools)
+  library(roxygen2)
+  rm(GO)
+  setwd("~/Work/pky")
+  document()
+  install("../pky"); library(peaky)
+}
+
+#######################################################
+
+#' @importFrom ggplot2 cut_number ggplot geom_hline geom_vline geom_point xlab ylab ggtitle aes ggsave
+#' @import data.table R2BGLiMS gamlss gamlss.tr gamlss.dist
 #Import for R2BGLiMS: Error in path.package("R2BGLiMS") : none of the packages are loaded
 
 library(gamlss) #Complains about not finding NBI() if not loaded via the library
-library(gamlss.tr)
-
 gamlss.tr::gen.trun(0,family="NBI",type="left",name=".0tr") #THIS HAS TO BE IN THE GLOBAL ENVIRONMENT, CANNOT BE WITHIN THE FIT FUNCTION!
-NBI.0tr <<- trun(0,family="NBI",type="left",name=".0tr", local=FALSE) #Just local == FALSE is not enough to make it global. Just locals (which gen.trun generates in in peaky:::) somehow aren't enough although all of these are referenced explcitly with peaky::: below
+NBI.0tr <<- gamlss.tr::trun(0,family="NBI",type="left",name=".0tr", local=FALSE) #Just local == FALSE is not enough to make it global. Just locals (which gen.trun generates in in peaky:::) somehow aren't enough although all of these are referenced explcitly with peaky::: below
 
 note = function(logfile=NA,logtime=T,...){
   if(logtime==TRUE){time=paste0(format(Sys.time(),"%d-%m-%Y %H:%M:%OS"),"\n")}else{time=""}
@@ -50,40 +60,40 @@ note = function(logfile=NA,logtime=T,...){
 bin_interactions = function(interactions, fragments, bins=5, log_file=NA){
   D = interactions; rm(interactions)
   L = log_file; rm(log_file)
-  
+
   if(ncol(D)<3 | all.equal(colnames(D)[1:3],c("baitID","preyID","N"))!=TRUE){note(L,T,"First three columns of interactions file should be named: baitID preyID N"); stop()}
   if(ncol(fragments)<4 | all.equal(colnames(fragments)[1:4],c("chrom","chromStart","chromEnd","ID"))!=TRUE){note(L,T,"First four columns of fragments file should be named: chrom chromStart chromEnd ID"); stop()}
   setnames(fragments,c("chr","start","end","ID"))
-  
+
   note(L,T,"Calculating fragment characteristics...")
   fragments = fragments[,.(chr, mid=round((end+start)/2), length=end-start, ID)]
-  
+
   note(L,T,"Adding fragment characteristics for baits...")
   D = merge(D,fragments[fragments$ID %in% D$baitID],by.x="baitID",by.y="ID",all.x=TRUE)
   setnames(D,paste0(ifelse(names(D) %in% names(fragments),"b.",""),names(D)))
-  
+
   note(L,T,"Adding fragment characteristics for preys...")
   D = merge(D,fragments[fragments$ID %in% D$preyID],by.x="preyID",by.y="ID",all.x=TRUE)
   setnames(D,paste0(ifelse(names(D) %in% names(fragments),"p.",""),names(D)))
   #Ditch all trans here?
-  
+
   note(L,T,"Calculating interaction distances...")
   D[b.chr==p.chr,dist:=(p.mid-b.mid)] #no clue, but this changes the number of rows somehow, with is for the whole dataset apparently, not the subset
   #D[b.chr==p.chr,dist:=(D[b.chr==p.chr,p.mid]-D[b.chr==p.chr,b.mid])]
-  
+
   note(L,T,"Calculating total trans-chromosomal read counts for each bait...")
   trans = D[,.(b.trans=sum((b.chr!=p.chr)*N)),by=.(baitID, b.chr)]
-  
+
   note(L,T,"Modelling those as a function of bait chromosome...")
-  trans_model = gamlss(b.trans ~ as.factor(b.chr), data=trans, family=NBI)
+  trans_model = gamlss(b.trans ~ as.factor(b.chr), data=trans, family=gamlss.dist::NBI)
   trans[,b.trans_res:=trans_model$residuals]
   D = merge(D,trans[,.(baitID, b.trans, b.trans_res)],by="baitID",all.x=TRUE)
-  
+
   note(L,T,"Assigning ",bins," distance bins...")
   D[p.chr==b.chr, dist.bin:=as.factor(as.integer(cut_number(D[p.chr==b.chr,abs(dist)],n=bins)))]
-  
+
   overview = D[,.(dist.abs.min=min(abs(dist)),dist.abs.max=max(abs(dist)),interactions=.N),by=dist.bin][order(dist.abs.min),]
-  
+
   note(L,T,"Done.")
   return(list(interactions=D,bins=overview))
 }
@@ -114,27 +124,27 @@ bin_interactions_fs  = function(interactions_file, fragments_file, output_dir, b
   L = paste0(output_dir,"/log_bins.txt")
   if(!dir.exists(output_dir)){dir.create(output_dir,recursive=TRUE)}
   write("BINNING\n",file=L,append=FALSE,sep="")
-  
+
   note(L,T, "Reading interactions from ",interactions_file)
   D = fread(interactions_file)
-  
+
   note(L,T, "Reading fragment information from ",fragments_file)
   fragments = fread(fragments_file)
-  
+
   BI = bin_interactions(D, fragments, bins, L)
-  
+
   save_bin = function(Dbin,output_dir,bins){
     filename = paste0(output_dir,"/bin_",as.character(Dbin$dist.bin)[1],".rds")
     note(L,F,filename)
     saveRDS(Dbin, file=filename)
   }
-  
+
   note(L,T,"Saving binned interactions:")
   by(BI$interactions, BI$interactions$dist.bin, FUN=save_bin, output_dir=output_dir, bins=bins) #Extra 'custom' columns from the input file are saved as well.
-  
+
   note(L,T,"Saving bin details to ",output_dir,"/bins.txt")
   fwrite(BI$bins,file=paste0(output_dir,"/bins.txt"),sep=" ",na=0)
-  
+
   return(list(output_dir=output_dir, interactions=BI$interactions, bins=BI$bins))
 }
 
@@ -180,7 +190,7 @@ bin_interactions_fs  = function(interactions_file, fragments_file, output_dir, b
 
 model_bin = function(bin, subsample_size=NA, gamlss_cycles=200, gamlss_crit=0.1, log_file=NA){
   L = log_file; rm(log_file)
-  
+
   if(is.na(subsample_size)){
     subsample_size=nrow(bin)
     note(L,T,"No subsampling size provided, using all ",subsample_size," interactions for the null model regression...")
@@ -188,17 +198,17 @@ model_bin = function(bin, subsample_size=NA, gamlss_cycles=200, gamlss_crit=0.1,
     note(L,T,"Subsampling ",subsample_size,"/",nrow(bin)," interactions for the null model regression...")
   }
   subset = sample(1:nrow(bin),subsample_size)
-  
+
   note(L,T,"Fitting with a maximum of ",gamlss_cycles," iterations...")
   control = gamlss.control(c.crit=gamlss_crit, n.cyc=gamlss_cycles)
-  
+
   fit = gamlss(N ~ log(abs(dist)) + b.trans_res  + sqrt(b.length) + sqrt(p.length),
-               data=bin[subset,], family=peaky:::NBI.0tr, sigma.formula = ~log(abs(dist)), control=control)
-  
+               data=bin[subset,], family=NBI.0tr, sigma.formula = ~log(abs(dist)), control=control)
+
   if(is.gamlss(fit)){
     note(L,T,"Converged: ",ifelse(fit$converged,"YES","NO"),"\nIterations: ",fit$iter,"\n\nCoefficients:")
     note(L,F,paste0(names(coef(fit)),"\t",coef(fit)))
-    
+
     note(L,T,"Obtaining normalized randomized quantile residuals for the full dataset...")
     residuals_all = gamlss:::rqres(pfun="peaky:::pNBI.0tr", type="Discrete", ymin=1,
                                    y=bin$N,
@@ -241,25 +251,25 @@ model_bin_fs = function(bins_dir,bin_index,output_dir,subsample_size=NA,gamlss_c
   L = paste0(output_dir,"/log_fit_",bin_index,".txt")
   if(!dir.exists(output_dir)){dir.create(output_dir,recursive=TRUE)}
   write("FITTING\n",file=L,append=FALSE,sep="")
-  
+
   b=bin_index
   output_path_fit = paste0(output_dir,"/fit_",b,".rds")
   output_path_residuals = paste0(output_dir,"/residuals_",b,".rds")
-  
+
   bin_path = paste0(bins_dir,"/bin_",b,".rds")
   note(L,F,"Loading bin from ",bin_path)
   bin = readRDS(bin_path)
-  
+
   BM = model_bin(bin, subsample_size=subsample_size, gamlss_cycles=gamlss_cycles, gamlss_crit=gamlss_crit, log_file=L)
-  
+
   if(is.gamlss(BM$fit)){
     note(L,F,"Saving fit to ",output_path_fit,"...")
     saveRDS(BM$fit, output_path_fit)
-    
+
     note(L,T,"Saving all residuals to ",output_path_residuals,"...")
     saveRDS(BM$residuals, output_path_residuals)
   }
-  
+
   return(list(output_dir=output_dir, fit=BM$fit, residuals=BM$residuals))
 }
 
@@ -300,7 +310,7 @@ model_bin_fs = function(bins_dir,bin_index,output_dir,subsample_size=NA,gamlss_c
 split_baits = function(bins, residuals, log_file=NA){
   bins = rbindlist(bins)
   L = log_file; rm(log_file)
-  
+
   pvalues = function(residuals_set) {
     p.res = pnorm(abs(residuals_set),lower.tail=FALSE) * 2
     fdr.res = p.adjust(p.res,method="fdr")
@@ -308,14 +318,14 @@ split_baits = function(bins, residuals, log_file=NA){
     fdr.res.onesided = p.adjust(p.res.onesided,method="fdr")
     data.table(p.res,fdr.res,p.res.onesided,fdr.res.onesided)
   }
-  
+
   note(L,T,"Calculating p-values and performing bin-wise FDR-adjustments...")
   ps = rbindlist(lapply(residuals,pvalues))
-  
+
   residuals = unlist(residuals)
   D = cbind(bins,residual=residuals,ps)
   return(D)
-  
+
 }
 
 #' Wrapper for split_baits() that interacts with the filesystem
@@ -353,26 +363,26 @@ split_baits_fs = function(bins_dir, residuals_dir, indices, output_dir, plots=TR
   L = paste0(output_dir,"/log_split.txt")
   if(!dir.exists(output_dir)){dir.create(output_dir,recursive=TRUE)}
   write("SPLITTING BAITS\n",file=L,append=FALSE,sep="")
-  
+
   bin_files = paste0(bins_dir,"/bin_",indices,".rds")
   residual_files = paste0(residuals_dir,"/residuals_",indices,".rds")
-  
+
   note(L,T,"Loading bins..."); note(L,F,bin_files)
   bins = lapply(bin_files,readRDS)
   #bins = rbindlist(bins)
-  
+
   note(L,T,"Loading residuals..."); note(L,F,residual_files)
   residuals = lapply(residual_files,readRDS)
   #residuals = unlist(residuals)
-  
+
   D = split_baits(bins, residuals, log_file=L)
-  
+
   save_bait = function(baitset,output_dir){
     filename = paste0(output_dir,"/bait_",as.character(baitset$baitID)[1],".rds")
     note(L,F,filename)
     saveRDS(baitset, file=filename)
   }
-  
+
   plot_bait = function(baitset, output_dir){
     filename = paste0(output_dir,"/bait_",as.character(baitset$baitID)[1],".pdf")
     plot = ggplot(data=baitset,aes(x=dist, y=residual)) +
@@ -381,18 +391,18 @@ split_baits_fs = function(bins_dir, residuals_dir, indices, output_dir, plots=TR
       xlab("Distance from bait (bp)") + ylab("Residuals") + ggtitle(paste0("Bait ",as.character(baitset$baitID)[1]))
     ggsave(plot, filename = filename,width=10,height=4)
   }
-  
+
   note(L,T,"Saving baits...")
   by(D,as.factor(D$baitID), FUN = save_bait, output_dir=output_dir)
-  
+
   bait_paths = paste0(output_dir,"/bait_",unique(D$baitID),".rds")
   write(bait_paths,paste0(output_dir,"/baitlist.txt"),sep="\n")
-  
+
   if(plots==TRUE){
     note(L,T,"Plotting baits...")
     by(D,as.factor(D$baitID), FUN = plot_bait, output_dir=output_dir)
   }
-  
+
   note(L,T,"Done.")
   return(list(output_dir=output_dir,bait_paths=bait_paths))
 }
@@ -440,29 +450,29 @@ split_baits_fs = function(bins_dir, residuals_dir, indices, output_dir, plots=TR
 peaky = function(bait, omega_power, iterations=1e6, min_interactions=20, log_file=NA){
   L=log_file; rm(log_file)
   P=bait; rm(bait)
-  
+
   if(!all(c("baitID","dist","residual")%in%names(P))){
     stop("Column names ought to include baitID, dist and residual")
   }else if(!(nrow(P)>=min_interactions)){
     stop("Minimum number of putative interactions (i.e. peak locations) not present.")
   }
-  
+
   P = P[order(P$dist),]
   genome = P$dist
   signal = P$residual
   baitID = unique(P$baitID)
-  
+
   note(L,T,"Constructing distance matrix with omega=10^-", omega_power,"...")
-  
+
   omega = 10^omega_power
-  
+
   dist_exp = function(offset, strength, omega){strength * exp(-(abs(offset*omega)))}
-  
+
   distance_matrix = mapply(function(position, strength, genome, omega){dist_exp(genome-position, strength=strength, omega=omega)},
                            position=genome, strength=1,
                            MoreArgs=list(genome=genome, omega=omega),
                            SIMPLIFY=TRUE)
-  
+
   extra.arguments <- list(
     "AlphaPriorMu" = 0,
     "AlphaPriorSd" = 0,
@@ -475,9 +485,9 @@ peaky = function(bait, omega_power, iterations=1e6, min_interactions=20, log_fil
     "Delete_Move_Probability" = 0.1,
     "Swap_Move_Probability" = 0.01
   )
-  
+
   model.space.prior=list(list("a"=1, "b"=length(unique(P$preyID)), "Variables"=paste0("P",1:length(genome))))
-  
+
   data=data.frame(cbind(distance_matrix,signal))
   colnames(data) = c(paste0("P",1:length(genome)),"S")
   results = R2BGLiMS(
@@ -489,7 +499,7 @@ peaky = function(bait, omega_power, iterations=1e6, min_interactions=20, log_fil
     seed=sample(1:1e6,1),
     n.iter=iterations
   )
-  
+
   return(results)
 }
 
@@ -541,16 +551,16 @@ peaky_fs = function(baitlist, index, output_dir, omega_power, iterations=1e6, mi
   bait_path = scan(file=baitlist,what="character",skip=index-1,nline=1,sep="\n")
   P = readRDS(file=bait_path)
   baitID = unique(P$baitID)
-  
+
   L = paste0(output_dir,"/log_rjmcmc_",baitID,".txt")
   if(!dir.exists(output_dir)){dir.create(output_dir,recursive=TRUE)}
   write("PEAKY\n",file=L,append=FALSE,sep="")
-  
-  
+
+
   note(L,T,"Loaded bait ",baitID," from path: ",bait_path,"...")
-  
+
   PKY = peaky(bait=P, omega_power=omega_power, iterations=iterations, min_interactions=min_interactions, log_file=L)
-  
+
   results_path = paste0(output_dir,"/rjmcmc_",baitID,".rds")
   note(L,T,"Saving RJMCMC results to ",results_path)
   saveRDS(PKY,file=results_path)
@@ -637,20 +647,20 @@ interpret_peaky = function(bait, peaks, omega_power, log_file=NA){
   L = log_file; rm(log_file)
   D = bait; rm(bait)
   rjmcmc = peaks; rm(peaks)
-  
+
   setorder(D,dist)
-  
+
   thin = as.matrix(rjmcmc@mcmc.output)
   loci = grep("^P[0-9]+$",colnames(thin),value=TRUE)
   thin = thin[,loci]
-  
+
   ### ALPHAS
-  
+
   note(L,T,"Calculating alphas...")
   alphas = rjmcmc@mcmc.output[,"alpha"]; rm(rjmcmc)
-  
+
   ### POSTERIORS
-  
+
   note(L,T,"Calculating posteriors...")
   zero=1e-5
   pars = data.table(zero_min=c(-zero,-Inf, -Inf, -zero, -zero),
@@ -658,37 +668,37 @@ interpret_peaky = function(bait, peaks, omega_power, log_file=NA){
                     present=c(FALSE,FALSE,TRUE,FALSE,TRUE))
   posteriors = mapply(mppi,list(thin),pars$zero_min, pars$zero_max, pars$present)
   colnames(posteriors) = c("mppi","mppi_pos","mppi_pos_present","mppi_neg","mppi_neg_present")
-  
+
   ### BETAS
-  
+
   note(L,T,"Calculating betas means and medians...")
-  
+
   b_mean = colMeans(thin); thin = data.table(thin)
   b_mean_present = as.numeric(thin[,lapply(.SD,function(col){mean(col[col>abs(1e-5)])})])
   b_median = as.numeric(thin[,lapply(.SD,median)])
   b_median_present = as.numeric(thin[,lapply(.SD,function(col){median(col[col>abs(1e-5)])})])
-  
+
   ### PREDICTED
-  
+
   genome = D$dist
-  
+
   note(L,T,"Constructing distance matrix with omega=10^-", omega_power,"...")
-  
+
   omega = 10^omega_power
-  
+
   dist_exp = function(offset, strength, omega){strength * exp(-(abs(offset*omega)))}
-  
+
   distance_matrix = mapply(function(position, strength, genome, omega){dist_exp(genome-position, strength=strength, omega=omega)},
                            position=genome, strength=1,
                            MoreArgs=list(genome=genome, omega=omega),
                            SIMPLIFY=TRUE)
-  
+
   note(L,F,"Finding RJMCMC predictions based on mean betas...")
   predicted = distance_matrix%*%b_mean
   predicted_present = distance_matrix%*%as.numeric(b_mean_present)
-  
+
   note(L,T,"Wrapping up...")
-  
+
   res = data.table(posteriors,
                    b_mean, b_mean_present, b_median, b_median_present,
                    predicted=predicted, predicted_present=predicted_present)
@@ -699,7 +709,7 @@ interpret_peaky = function(bait, peaks, omega_power, log_file=NA){
   #res = merge(res,modules,by="pos",all.x=TRUE)
   res = res[order(as.numeric(gsub("P","",pos))),]
   D = cbind(D,res)
-  
+
 }
 
 #' Wrapper for interpret_peaky() that interacts with the filesystem
@@ -754,20 +764,20 @@ interpret_peaky_fs = function(rjmcmclist, index, baits_dir, output_dir, omega_po
   path_split = strsplit(rjmcmc_path,"_")[[1]]
   id = as.numeric(gsub(".rds","",path_split[length(path_split)]))
   bait_path = paste0(baits_dir,"/bait_",id,".rds")
-  
+
   L=paste0(output_dir,"/log_baits_rjmcmc_",id,".txt")
   if(!dir.exists(output_dir)){dir.create(output_dir,recursive=TRUE)}
   write("INTERPRETING RJMCMC RESULTS\n",file=L,append=FALSE,sep="")
-  
+
   note(L,F,"Loading RJMCMC result and bait:\n",rjmcmc_path,"\n",bait_path)
-  
+
   rjmcmc = readRDS(rjmcmc_path)
   D = readRDS(bait_path)
-  
+
   ### OUTPUT
-  
+
   D = interpret_peaky(bait=D, peaks=rjmcmc, omega_power=omega_power, log_file=L)
-  
+
   output_path = paste0(output_dir,"/bait_rjmcmc_",id,".rds")
   note(L,T,"Saving the bait with its RJMCMC results to",output_path)
   saveRDS(D,file = output_path)
@@ -783,19 +793,6 @@ interpret_peaky_fs = function(rjmcmclist, index, baits_dir, output_dir, omega_po
 
 
 
-######################################################
-### PACKAGE BUILD
-######################################################
-
-#Save first....
-if(exists("GO")){
-  library(devtools)
-  library(roxygen2)
-  rm(GO)
-  setwd("E:/Work/pky")
-  document()
-  install("../pky"); library(peaky)
-}
 
 
 

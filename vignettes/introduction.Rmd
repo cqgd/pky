@@ -1,6 +1,6 @@
 ---
-title: "Vignette Title"
-author: "Vignette Author"
+title: "Peaky"
+author: "Chris Eijsbouts"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
@@ -9,50 +9,114 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-Vignettes are long form documentation commonly included in packages. Because they are part of the distribution of the package, they need to be as compact as possible. The `html_vignette` output type provides a custom style sheet (and tweaks some options) to ensure that the resulting html is as small as possible. The `html_vignette` format:
+## Purpose
 
-- Never uses retina figures
-- Has a smaller default figure size
-- Uses a custom CSS stylesheet instead of the default Twitter Bootstrap style
+Peaky maps physical contacts between different regions of DNA by recognizing peaks in a Capture Hi-C (CHi-C) signal for a specific region of interest. It accounts for technical and biological noise, and subsequently finds regions around which the residual signal peaks and then decays with distance. The algorithm finds sets of regions at which peaks of varying strengths combinedly explain the normalized CHi-C signal. The probability of these regions contacting a region of interest is then quantified.
 
-## Vignette Info
+## Input
 
-Note the various macros within the `vignette` section of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette.
+Peaky requires two input files. The first contains the raw CHi-C signal: readcounts (N) corroborating interactions between regions of interest (baits) and their putative interaction partners (preys). The second describes the physical location of each region (fragment) in the genome. These will be referred to as the interactions file and the fragments file, respectively.
 
-## Styles
+An example of each is included with the package and used for the analysis below:
 
-The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
 
-    output: 
-      rmarkdown::html_vignette:
-        css: mystyles.css
-
-## Figures
-
-The figure sizes have been customised so that you can easily put two images side-by-side. 
-
-```{r, fig.show='hold'}
-plot(1:10)
-plot(10:1)
+```{r, include=FALSE}
+library(R2BGLiMS) #loaded separately for now
+library(gamlss) #loaded separately for now
+gamlss.tr::gen.trun(0,family="NBI",type="left",name=".0tr")
+NBI.0tr <<- gamlss.tr::trun(0,family="NBI",type="left",name=".0tr", local=FALSE)
 ```
 
-You can enable figure captions by `fig_caption: yes` in YAML:
+```{r, echo=TRUE, cache=TRUE}
+library(peaky)
 
-    output:
-      rmarkdown::html_vignette:
-        fig_caption: yes
+base = system.file("extdata",package="peaky")
 
-Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
+interactions_file = paste0(base,"/counts.tsv")
+fragments_file = paste0(base,"/fragments.bed")
 
-## More Examples
+interactions = data.table::fread(interactions_file)
+fragments = data.table::fread(fragments_file)
 
-You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
-
-```{r, echo=FALSE, results='asis'}
-knitr::kable(head(mtcars, 10))
+print(head(interactions))
+print(head(fragments))
 ```
 
-Also a quote using `>`:
 
-> "He who gives up [code] safety for [code] speed deserves neither."
-([via](https://twitter.com/hadleywickham/status/504368538874703872))
+## Initial normalization of counts
+Peaky will initially adjust the readcounts for each pair of fragments based on the linear genomic distance between them, their lengths, and transchromosomal bait activity. The effects these characteristics have on the readcounts can vary between short and long-range interactions, and they are therefore estimated multiple times from samples of interactions spanning various ranges. The first step is thus to bin interactions based on distance using `bin_interactions()`:  
+
+
+```{r, echo=TRUE, cache=TRUE}
+BI = bin_interactions(interactions, fragments, bins=5)
+print(BI$bins)
+```
+
+The 5 distance bins created above all contain an equal number of interactions. Note that the linear genomic distance between two fragments is not defined when they are from two different chromosomes. Transchromosomal interactions (bottom row of the table) are therefore not assigned a distance bin.
+
+Models that predict readscounts under the null (i.e. in the case where an interaction is not biologically significant) can then be generated for each distance bin based on a random sample of the interactions they contain using `model_bin()`:. 
+
+```{r, echo=TRUE, cache=TRUE, fig.height=7, fig.width=7}
+models = by(BI$interactions, BI$interactions$dist.bin, model_bin, subsample_size=1000)
+
+plot(models[[1]]$fit)
+```
+
+Taking the observed readcounts and adjusting for the effects of biological and technical noise in the models gives us normalized readcounts: they quantify the extent to which the observed readcounts exceed those predicted under the null. In practice, the normalized readcounts are the randomized quantile residuals of each model. Note that the Q-Q plot shows a series of outliers: unexpectedly high adjusted read counts.
+
+The adjusted readcounts for all putative interaction are extracted from the models below. They are tacked onto the interactions, which are all grouped together again using `split_baits()`:
+
+```{r, echo=TRUE, cache=TRUE}
+residuals = lapply(models, "[[", "residuals")
+bins = split(BI$interactions, BI$interactions$dist.bin)
+BTS = split_baits(bins, residuals)
+```
+
+Plotting the adjusted readcounts associated with a single bait (up to 1Mb around it) reveals that there is still an autocorrelated signal: 
+```{r, echo=TRUE, cache=TRUE, fig.height=4, fig.width=7}
+relevant_bait = BTS[baitID==618421]
+zoom = relevant_bait[abs(relevant_bait$dist)<1e6]
+plot(x=zoom$dist, 
+     y=zoom$residual, 
+     xlab="Distance from bait (bp)", 
+     ylab="Adjusted readcount",
+     main=paste("Bait",unique(zoom$baitID)))
+```
+A central assumption of Peaky is that this signal stems from few direct contacts, regions above which the CHi-C signal peaks. The signal then decays amongst neighboring fragments, with which collateral contacts are merely collateral. 
+
+
+##Joint analysis of neighboring fragments
+Next, Peaky identifies sets of direct contacts that explain the peaks in the adjusted readcounts. It takes a single bait and proposes direct contacts with several of its prey fragments simultaneously, at varying strengths.  
+
+
+example of how to fit dist func
+
+```{r, echo=TRUE, cache=TRUE, fig.height=10, fig.width=7}
+relevant_bait = BTS[baitID==618421]
+omega_power=4.7
+PKS = peaky(relevant_bait, omega_power, iterations=1e6)
+P = interpret_peaky(relevant_bait, PKS, omega_power)
+
+par(mfrow=c(3,1))
+zoom = P[abs(P$dist)<1e6]
+plot(x=zoom$dist, xlab="Distance from bait (bp)",
+     y=zoom$residual, ylab="Adjusted readcount")
+
+plot(x=zoom$dist, xlab="Distance from bait (bp)",
+     y=zoom$beta_mean, ylab="Mean contact strength",
+     col="green")
+
+plot(x=zoom$dist, xlab="Distance from bait (bp)",
+     y=zoom$rjmcmc_pos, ylab="MPPC",
+     col="blue")
+```     
+
+explain all columns in P
+
+##Filesystem version
+
+To make the software more convenient for use on a cluster, Peaky has wrapper functions that interact directly with the filesystem. These wrappers generally take integer arguments specifying which inputs (out of some directory) to work with, and save results directly to disk.
+
+Example.
+
+

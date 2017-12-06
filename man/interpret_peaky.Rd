@@ -7,14 +7,14 @@
 interpret_peaky(bait, peaks, omega_power, log_file = NA)
 }
 \arguments{
+\item{bait}{Data table containing the putative interactions of a bait, having the columns 'baitID', 'dist', and 'residual'. These report the bait ID, its distance to putative preys, and the adjusted readcounts for its interactions with them, respectively.}
+
 \item{peaks}{The models fitted by peaky.}
 
 \item{omega_power}{The same value as used when running peaky, i.e. the expected decay of adjusted read counts around a truly interacting prey. See details.}
-
-\item{rjmcmclist}{Path to the list of RJMCMC results to be interpreted.}
 }
 \value{
-The output directory.
+A data table containing bait-associated information, posterior probabilities of contact and other statistics.
 
 Details.
 The steepness of the function to be fitted to putative peaks is determined by \eqn{\omega} according to \eqn{\beta \exp{- \abs{\omega * d}}}, where \eqn{\beta} represents peak height and \eqn{d} the distance from the center of the peak in bp.
@@ -24,23 +24,17 @@ Extracts the marginal posterior probabilities of contact and other relevant stat
 }
 \examples{
 base = system.file("extdata",package="peaky")
-
 interactions_file = paste0(base,"/counts.tsv")
-bins_dir = paste0(base,"/bins")
 fragments_file = paste0(base,"/fragments.bed")
-
 interactions = data.table::fread(interactions_file)
 fragments = data.table::fread(fragments_file)
 
 BI = bin_interactions(interactions, fragments, bins=5)
+models = by(BI$interactions, BI$interactions$dist.bin, model_bin, subsample_size=1000)
+residuals = lapply(models, "[[", "residuals")
+bins = split(BI$interactions, BI$interactions$dist.bin)
 
-data.table::setorder(BI$interactions, dist.bin)
-
-relevant_bins = 1:8
-BI$interactions = BI$interactions[dist.bin\%in\%relevant_bins,]
-RES = sapply(relevant_bins, function(x,BI){ model_bin(BI$interactions[dist.bin==x,])$residuals }, BI=BI)
-
-BTS = split_baits(BI$interactions, unlist(RES))
+BTS = split_baits(bins, residuals)
 
 relevant_bait = BTS[baitID==618421]
 omega_power=4.7
