@@ -4,6 +4,7 @@ Version: 0.0.0.9000
 Authors@R: person("Chris", "Eijsbouts", email = "c@q.gd", role = c("aut", "cre"))
 Description: Peaky maps physical contacts between different regions of DNA by recognizing peaks in a Capture Hi-C (CHi-C) signal. It accounts for technical and biological noise, and subsequently finds DNA fragments around which the residual signal peaks and then decays with distance. The algorithm finds sets of locations at which peaks of varying strengths combinedly explain the normalized CHi-C signal. 
 Depends: R (>= 3.3.2)
+Imports: data.table, R2BGLiMS, gamlss, gamlss.tr
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
