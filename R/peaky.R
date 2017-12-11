@@ -9,7 +9,8 @@ if(exists("GO")){
   rm(GO)
   setwd("~/Work/pky")
   document()
-  install("../pky"); library(peaky)
+  install()
+  library(peaky)
 }
 
 #######################################################
@@ -17,10 +18,6 @@ if(exists("GO")){
 #' @importFrom ggplot2 cut_number ggplot geom_hline geom_vline geom_point xlab ylab ggtitle aes ggsave
 #' @import data.table R2BGLiMS gamlss gamlss.tr gamlss.dist
 #Import for R2BGLiMS: Error in path.package("R2BGLiMS") : none of the packages are loaded
-
-library(gamlss) #Complains about not finding NBI() if not loaded via the library
-gamlss.tr::gen.trun(0,family="NBI",type="left",name=".0tr") #THIS HAS TO BE IN THE GLOBAL ENVIRONMENT, CANNOT BE WITHIN THE FIT FUNCTION!
-NBI.0tr <<- gamlss.tr::trun(0,family="NBI",type="left",name=".0tr", local=FALSE) #Just local == FALSE is not enough to make it global. Just locals (which gen.trun generates in in peaky:::) somehow aren't enough although all of these are referenced explcitly with peaky::: below
 
 note = function(logfile=NA,logtime=T,...){
   if(logtime==TRUE){time=paste0(format(Sys.time(),"%d-%m-%Y %H:%M:%OS"),"\n")}else{time=""}
@@ -189,6 +186,9 @@ bin_interactions_fs  = function(interactions_file, fragments_file, output_dir, b
 #' @export
 
 model_bin = function(bin, subsample_size=NA, gamlss_cycles=200, gamlss_crit=0.1, log_file=NA){
+  gamlss.tr::gen.trun(0,family="NBI",type="left",name=".0tr") #THIS HAS TO BE IN THE GLOBAL ENVIRONMENT, CANNOT BE WITHIN THE FIT FUNCTION!
+  NBI.0tr <<- gamlss.tr::trun(0,family="NBI",type="left",name=".0tr", local=FALSE) #Just local == FALSE is not enough to make it global. Just locals (which gen.trun generates in in peaky:::) somehow aren't enough although all of these are referenced explcitly with peaky::: below
+
   L = log_file; rm(log_file)
 
   if(is.na(subsample_size)){
@@ -210,7 +210,7 @@ model_bin = function(bin, subsample_size=NA, gamlss_cycles=200, gamlss_crit=0.1,
     note(L,F,paste0(names(coef(fit)),"\t",coef(fit)))
 
     note(L,T,"Obtaining normalized randomized quantile residuals for the full dataset...")
-    residuals_all = gamlss:::rqres(pfun="peaky:::pNBI.0tr", type="Discrete", ymin=1,
+    residuals_all = gamlss:::rqres(pfun="pNBI.0tr", type="Discrete", ymin=1,
                                    y=bin$N,
                                    mu=predict(fit,what="mu",newdata=bin,type="response",data=bin[subset,]),
                                    sigma=predict(fit,what="sigma",newdata=bin,type="response",data=bin[subset,]))
