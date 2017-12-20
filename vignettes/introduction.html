@@ -12,7 +12,7 @@
 
 <meta name="author" content="Chris Eijsbouts" />
 
-<meta name="date" content="2017-12-06" />
+<meta name="date" content="2017-12-20" />
 
 <title>Peaky</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Peaky</h1>
 <h4 class="author"><em>Chris Eijsbouts</em></h4>
-<h4 class="date"><em>2017-12-06</em></h4>
+<h4 class="date"><em>2017-12-20</em></h4>
 
 
 
@@ -80,7 +80,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </div>
 <div id="input" class="section level2">
 <h2>Input</h2>
-<p>Peaky requires two input files. The first contains the raw CHi-C signal: readcounts (N) corroborating interactions between regions of interest (baits) and their putative interaction partners (preys). The second describes the physical location of each region (fragment) in the genome. These will be referred to as the interactions file and the fragments file, respectively.</p>
+<p>Peaky requires two input files. The first contains the raw CHi-C signal: readcounts (N, must be &gt;=1) corroborating interactions between regions of interest (baits) and their putative interaction partners (preys). The second describes the physical location of each region (fragment) in the genome. These will be referred to as the interactions file and the fragments file, respectively.</p>
 <p>An example of each is included with the package and used for the analysis below:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(peaky)
 
@@ -313,11 +313,41 @@ zoom =<span class="st"> </span>relevant_bait[<span class="kw">abs</span>(relevan
 <div id="joint-analysis-of-neighboring-fragments" class="section level2">
 <h2>Joint analysis of neighboring fragments</h2>
 <p>Next, Peaky identifies sets of direct contacts that explain the peaks in the adjusted readcounts. It takes a single bait and proposes direct contacts with several of its prey fragments simultaneously, at varying strengths.</p>
+<p>To determine where direct contacts occur, Peaky must be told what a peak in the adjusted readcounts looks like: how quickly would the signal decay as we consider fragments further and further away from a fragment that is directly contacted? The steepness of the expected decay is set via the parameter :</p>
+<span class="math display">\[\begin{equation}
+y = \beta \exp{- \abs{\omega * d}}
+\end{equation}\]</span>
+<p>where <span class="math inline">\(y\)</span> is the contribution of a specific peak to the adjusted readcount we observe, represents peak height and <span class="math inline">\(d\)</span> the distance from the center of the peak in bp.</p>
+<p>We can look at several isolated peaks to see what would be an appropriate choice of omega:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">peak_center =<span class="st"> </span>zoom<span class="op">$</span>dist[<span class="kw">which.max</span>(zoom<span class="op">$</span>residual)]
+zoom<span class="op">$</span>distance_from_peak =<span class="st"> </span><span class="kw">abs</span>(zoom<span class="op">$</span>dist<span class="op">-</span>peak_center)
+single_peak =<span class="st"> </span>zoom[distance_from_peak<span class="op">&lt;</span><span class="fl">4e5</span>,]
+<span class="kw">plot</span>(single_peak<span class="op">$</span>distance_from_peak, single_peak<span class="op">$</span>residual)</code></pre></div>
+<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAqAAAAGACAMAAABFpiBcAAADAFBMVEUAAAABAQECAgIDAwMEBAQFBQUGBgYHBwcICAgJCQkKCgoLCwsMDAwNDQ0ODg4PDw8QEBARERESEhITExMUFBQVFRUWFhYXFxcYGBgZGRkaGhobGxscHBwdHR0eHh4fHx8gICAhISEiIiIjIyMkJCQlJSUmJiYnJycoKCgpKSkqKiorKyssLCwtLS0uLi4vLy8wMDAxMTEyMjIzMzM0NDQ1NTU2NjY3Nzc4ODg5OTk6Ojo7Ozs8PDw9PT0+Pj4/Pz9AQEBBQUFCQkJDQ0NERERFRUVGRkZHR0dISEhJSUlKSkpLS0tMTExNTU1OTk5PT09QUFBRUVFSUlJTU1NUVFRVVVVWVlZXV1dYWFhZWVlaWlpbW1tcXFxdXV1eXl5fX19gYGBhYWFiYmJjY2NkZGRlZWVmZmZnZ2doaGhpaWlqampra2tsbGxtbW1ubm5vb29wcHBxcXFycnJzc3N0dHR1dXV2dnZ3d3d4eHh5eXl6enp7e3t8fHx9fX1+fn5/f3+AgICBgYGCgoKDg4OEhISFhYWGhoaHh4eIiIiJiYmKioqLi4uMjIyNjY2Ojo6Pj4+QkJCRkZGSkpKTk5OUlJSVlZWWlpaXl5eYmJiZmZmampqbm5ucnJydnZ2enp6fn5+goKChoaGioqKjo6OkpKSlpaWmpqanp6eoqKipqamqqqqrq6usrKytra2urq6vr6+wsLCxsbGysrKzs7O0tLS1tbW2tra3t7e4uLi5ubm6urq7u7u8vLy9vb2+vr6/v7/AwMDBwcHCwsLDw8PExMTFxcXGxsbHx8fIyMjJycnKysrLy8vMzMzNzc3Ozs7Pz8/Q0NDR0dHS0tLT09PU1NTV1dXW1tbX19fY2NjZ2dna2trb29vc3Nzd3d3e3t7f39/g4ODh4eHi4uLj4+Pk5OTl5eXm5ubn5+fo6Ojp6enq6urr6+vs7Ozt7e3u7u7v7+/w8PDx8fHy8vLz8/P09PT19fX29vb39/f4+Pj5+fn6+vr7+/v8/Pz9/f3+/v7////isF19AAAACXBIWXMAAA7DAAAOwwHHb6hkAAAgAElEQVR4nO2dB1gTSRvHg4IivSah9yqiKEiTImBDBbGCYjlFsGOvp9h79+wNxQ6Ws37qqWfv3bOiqNgRrBQhyXy7syGEkLbZRBaY3/O4m+zO5h3iP1PfeYcBEAgaw6jsDCAQ0kACRdAaJFAErUECRdAaJFAErUECRdAaJFAErUECRdAaJFAErUECRdAaJFAErUECRdAaJFAErUECRdAaJFAErUECRdAaJFAErUECRdAaJFAErUECRdAaJFAErUECRdAaJFAErUECRdAaJFAErUECRdAaJFAErUECRdAaJFAErUECRdAaJFAErUECRdAaJFAErUECRdAaJFAErUECRdAaJFAErUECRdAaJFAErUECRdAaJFAErUECRdAaJFAErUECRdAaJFAErUECRdAaJFAErUECRdAaJFAErUECRdAaJFAErUECRdAaJFAErUECRdAaJFAErUECRdAaJFAErUECRdAaJFAErUECRdAaJFAErUECRdAaJFAErUECRdAaJFAErUECRdAaJFAErUECRdAaJFAErUECRdAaJFAErUECRdAaJFAErUECRdAaJFAErUECRdAaJFAErVGyQEc2QSDkoNmHyhGo3+YbCIRsnO5WkkAvK/fzENUUTxUKlPNMcvGMBIqQC9UIlDu3M+BO02YwbHZJSCFGoH8Pil/wlYwVRA1ANQKdrjYGzFBPPrQvjnFAfIoKAi1q12RlWoL5NTJmENUf1QjUejAAFlPwV/E+4lNUEOjcKC52PODMJWMHUe1RjUCNNwFu3WP4q1Rd4ev/JZait1vkEe8L8FT/Nhk7iGqPagQa05YLgsfgr7oHCF//sLaUuqtEHrHNgqeWx8nYQVR7VCPQRyYhO3Zoj/jncDe1dPEpdNaLXAg9gh+5Vs/I2EFUe1Q0zPSoL9aFx/DOkJCggkC3NfwEAC+lOSkziGqPysZBC5+dP3otW+LtCgIF01l9hjUKekvSDKKao8qBemlUFCjI2rzsX55yrSCqPDQSKAJRESRQBK1BAkXQGiRQBK1BAkXQGiRQBK1BAkXQGiRQBK1BAkXQGiRQBK1BAkXQmqoi0GuzRqf9Um4WEFWBqiFQbpLtxAVtnR8pNw+IKgD9BFq4Zew80UytCirAjusaIWenGgftBHrHIXreGIvR5aUY+A88Od1XbiYQ9IduAuU478SO3xpvL3fV7gU8tfqfcjOBoD8kBbpUCEp2JQn0khc87WtT7ioqQWssJAXKFoKSXUkCTe8MT/calLu6ulk+dlzbmJJJRFWEblX8RUKE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" /><!-- --></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">dist_exp =<span class="st"> </span><span class="cf">function</span>(offset, strength, omega_power) {
+  omega =<span class="st"> </span><span class="dv">10</span><span class="op">^-</span>omega_power
+  strength <span class="op">*</span><span class="st"> </span><span class="kw">exp</span>(<span class="op">-</span>(<span class="kw">abs</span>(offset <span class="op">*</span><span class="st"> </span>omega)))
+}
+
+<span class="kw">nls</span>(residual<span class="op">~</span><span class="kw">dist_exp</span>(distance_from_peak,strength,omega_power), 
+    <span class="dt">data=</span>single_peak, 
+    <span class="dt">start=</span><span class="kw">list</span>(<span class="dt">strength=</span><span class="dv">5</span>, <span class="dt">omega_power=</span><span class="dv">5</span>))</code></pre></div>
+<pre><code>## Nonlinear regression model
+##   model: residual ~ dist_exp(distance_from_peak, strength, omega_power)
+##    data: single_peak
+##    strength omega_power 
+##       3.782       5.064 
+##  residual sum-of-squares: 186.5
+## 
+## Number of iterations to convergence: 3 
+## Achieved convergence tolerance: 6.892e-06</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#plot this</span></code></pre></div>
+<p>DO FS FIRSt BECAUSE THEN YOU HAVE THE BAITS</p>
 <p>example of how to fit dist func</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">relevant_bait =<span class="st"> </span>BTS[baitID<span class="op">==</span><span class="dv">618421</span>]
 omega_power=<span class="fl">4.7</span>
 PKS =<span class="st"> </span><span class="kw">peaky</span>(relevant_bait, omega_power, <span class="dt">iterations=</span><span class="fl">1e6</span>)</code></pre></div>
-<pre><code>## 06-12-2017 05:43:29
+<pre><code>## 20-12-2017 03:43:03
 ## Constructing distance matrix with omega=10^-4.7...
 ## 1e+06 iterations will be run...
 ## Setting user specified argument AlphaPriorMu 
@@ -331,24 +361,24 @@ PKS =<span class="st"> </span><span class="kw">peaky</span>(relevant_bait, omega
 ## Setting user specified argument Delete_Move_Probability 
 ## Setting user specified argument Swap_Move_Probability 
 ## 0 observations deleted due to missingnessWriting data into an input file for BGLiMS...
-## Data written in 0 hrs 1 mins and 57 seconds.
+## Data written in 0 hrs 1 mins and 49 seconds.
 ## Calling BGLiMS Java algorithm with command: 
-## java -jar &quot;/home/cq/R/x86_64-pc-linux-gnu-library/3.4/R2BGLiMS/BGLiMS/BGLiMS.jar&quot; &quot;/tmp/Rtmpuv1CIu/file53fd58bb4077_Dec06054330_Arguments.txt&quot; &quot;/tmp/Rtmpuv1CIu/file53fd7f4cc102_Dec06054330_Data.txt&quot; &quot;/tmp/Rtmpuv1CIu/file53fd7f534acc_Dec06054330_Results.txt&quot; 1000000 0 100 100000 229018 1 1 0 -1 1 1 1 1707 
-## BGLiMS Java computation finished in 0 hrs 4 mins and 7 seconds.
+## java -jar &quot;/home/cq/R/x86_64-pc-linux-gnu-library/3.4/R2BGLiMS/BGLiMS/BGLiMS.jar&quot; &quot;/tmp/RtmpsX6TBC/file6194ceab5e6_Dec20034303_Arguments.txt&quot; &quot;/tmp/RtmpsX6TBC/file619420df8466_Dec20034303_Data.txt&quot; &quot;/tmp/RtmpsX6TBC/file61941ac60830_Dec20034303_Results.txt&quot; 1000000 0 100 100000 229018 1 1 0 -1 1 1 1 1707 
+## BGLiMS Java computation finished in 0 hrs 3 mins and 55 seconds.
 ## Reading BGLiMS posterior output...
 ## Posterior output processed in 0 hrs 0 mins and 8 seconds.
 ## Finished.</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">P =<span class="st"> </span><span class="kw">interpret_peaky</span>(relevant_bait, PKS, omega_power)</code></pre></div>
-<pre><code>## 06-12-2017 05:49:42
+<pre><code>## 20-12-2017 03:48:55
 ## Calculating alphas...
-## 06-12-2017 05:49:42
+## 20-12-2017 03:48:55
 ## Calculating posteriors...
-## 06-12-2017 05:49:43
+## 20-12-2017 03:48:56
 ## Calculating betas means and medians...
-## 06-12-2017 05:49:44
+## 20-12-2017 03:48:57
 ## Constructing distance matrix with omega=10^-4.7...
 ## Finding RJMCMC predictions based on mean betas...
-## 06-12-2017 05:49:44
+## 20-12-2017 03:48:57
 ## Wrapping up...</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">par</span>(<span class="dt">mfrow=</span><span class="kw">c</span>(<span class="dv">3</span>,<span class="dv">1</span>))
 zoom =<span class="st"> </span>P[<span class="kw">abs</span>(P<span class="op">$</span>dist)<span class="op">&lt;</span><span class="fl">1e6</span>]
@@ -368,7 +398,529 @@ zoom =<span class="st"> </span>P[<span class="kw">abs</span>(P<span class="op">$
 <div id="filesystem-version" class="section level2">
 <h2>Filesystem version</h2>
 <p>To make the software more convenient for use on a cluster, Peaky has wrapper functions that interact directly with the filesystem. These wrappers generally take integer arguments specifying which inputs (out of some directory) to work with, and save results directly to disk.</p>
-<p>Example.</p>
+<p>The workflow is similar to (and arguably simpler than) that of the interactive version, and allows for parallelization at the following computationally intensive steps:</p>
+<p><em>Removing initial noise (going from raw readcounts to adjusted readcounts) with <code>model_bin_fs</code> </em>Separating direct from collateral contacts with <code>peaky_fs()</code></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">base =<span class="st"> </span><span class="kw">system.file</span>(<span class="st">&quot;extdata&quot;</span>,<span class="dt">package=</span><span class="st">&quot;peaky&quot;</span>)
+interactions_file =<span class="st"> </span><span class="kw">paste0</span>(base,<span class="st">&quot;/counts.tsv&quot;</span>)
+bins_dir =<span class="st"> </span><span class="kw">paste0</span>(base,<span class="st">&quot;/bins&quot;</span>)
+fragments_file =<span class="st"> </span><span class="kw">paste0</span>(base,<span class="st">&quot;/fragments.bed&quot;</span>)
+
+<span class="kw">bin_interactions_fs</span>(interactions_file, fragments_file, <span class="dt">output_dir=</span>bins_dir)</code></pre></div>
+<pre><code>## 20-12-2017 04:12:36
+## Reading interactions from /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/counts.tsv
+## 20-12-2017 04:12:36
+## Reading fragment information from /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/fragments.bed
+## 20-12-2017 04:12:36
+## Calculating fragment characteristics...
+## 20-12-2017 04:12:36
+## Adding fragment characteristics for baits...
+## 20-12-2017 04:12:36
+## Adding fragment characteristics for preys...
+## 20-12-2017 04:12:36
+## Calculating interaction distances...
+## 20-12-2017 04:12:36
+## Calculating total trans-chromosomal read counts for each bait...
+## 20-12-2017 04:12:36
+## Modelling those as a function of bait chromosome...
+## GAMLSS-RS iteration 1: Global Deviance = 363.9654 
+## GAMLSS-RS iteration 2: Global Deviance = 363.9654 
+## 20-12-2017 04:12:37
+## Assigning 5 distance bins...
+## 20-12-2017 04:12:37
+## Done.
+## 20-12-2017 04:12:37
+## Saving binned interactions:
+## /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/bins/bin_1.rds
+## /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/bins/bin_2.rds
+## /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/bins/bin_3.rds
+## /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/bins/bin_4.rds
+## /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/bins/bin_5.rds
+## 20-12-2017 04:12:37
+## Saving bin details to /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/bins/bins.txt</code></pre>
+<pre><code>## $output_dir
+## [1] &quot;/home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/bins&quot;
+## 
+## $interactions
+##        baitID preyID N b.chr     b.mid b.length p.chr     p.mid p.length
+##     1:  53559  52096 1     1 212337456     8519     1 207345336     1932
+##     2:  53559  52107 1     1 212337456     8519     1 207380122      891
+##     3:  53559  52112 1     1 212337456     8519     1 207394962     6067
+##     4:  53559  52113 1     1 212337456     8519     1 207398127      260
+##     5:  53559  52121 1     1 212337456     8519     1 207434420     1859
+##    ---                                                                  
+## 78052: 661722 830195 1     6 170834793     4398     X 155188600      619
+## 78053: 661722 831633 1     6 170834793     4398     Y   7238968     2825
+## 78054: 661722 832798 1     6 170834793     4398     Y  14832472     5436
+## 78055: 661722 833895 1     6 170834793     4398     Y  18220566     2150
+## 78056: 661722 835350 1     6 170834793     4398     Y  22944058     3103
+##            dist b.trans b.trans_res dist.bin
+##     1: -4992120     151   0.1080277        5
+##     2: -4957334     151   0.1080277        5
+##     3: -4942494     151   0.1080277        5
+##     4: -4939329     151   0.1080277        5
+##     5: -4903036     151   0.1080277        5
+##    ---                                      
+## 78052:       NA    1719   2.2127954       NA
+## 78053:       NA    1719   2.2127954       NA
+## 78054:       NA    1719   2.2127954       NA
+## 78055:       NA    1719   2.2127954       NA
+## 78056:       NA    1719   2.2127954       NA
+## 
+## $bins
+##    dist.bin dist.abs.min dist.abs.max interactions
+## 1:        1         1589       733827         9064
+## 2:        2       733934      1590370         9064
+## 3:        3      1590586      2558743         9063
+## 4:        4      2558841      3664236         9064
+## 5:        5      3664323      4999963         9064
+## 6:       NA           NA           NA        32737</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fits_dir =<span class="st"> </span><span class="kw">paste0</span>(base,<span class="st">&quot;/fits&quot;</span>)
+
+<span class="cf">for</span>(bin_index <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="dv">5</span>){
+  <span class="kw">model_bin_fs</span>(bins_dir,bin_index,<span class="dt">output_dir=</span>fits_dir,<span class="dt">subsample_size=</span><span class="dv">1000</span>)
+}</code></pre></div>
+<pre><code>## Loading bin from /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/bins/bin_1.rds
+## A truncated family of distributions from NBI has been generated 
+##  and saved under the names:  
+##  dNBI.0tr pNBI.0tr qNBI.0tr rNBI.0tr NBI.0tr 
+## The type of truncation is left 
+##  and the truncation parameter is 0  
+## 20-12-2017 04:12:37
+## Subsampling 1000/9064 interactions for the null model regression...
+## 20-12-2017 04:12:37
+## Fitting with a maximum of 200 iterations...
+## GAMLSS-RS iteration 1: Global Deviance = 7893.721 
+## GAMLSS-RS iteration 2: Global Deviance = 7783.975 
+## GAMLSS-RS iteration 3: Global Deviance = 7668.32 
+## GAMLSS-RS iteration 4: Global Deviance = 7579.02 
+## GAMLSS-RS iteration 5: Global Deviance = 7559.54 
+## GAMLSS-RS iteration 6: Global Deviance = 7558.493 
+## GAMLSS-RS iteration 7: Global Deviance = 7558.466 
+## 20-12-2017 04:12:38
+## Converged: YES
+## Iterations: 7
+## 
+## Coefficients:
+## (Intercept)  15.8187666214641
+##  log(abs(dist))  -1.02337161081153
+##  b.trans_res 0.134955364667943
+##  sqrt(b.length)  -0.00559288334295286
+##  sqrt(p.length)  0.000871569891213039
+## 20-12-2017 04:12:38
+## Obtaining normalized randomized quantile residuals for the full dataset...
+## Saving fit to /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/fits/fit_1.rds...
+## 20-12-2017 04:12:39
+## Saving all residuals to /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/fits/residuals_1.rds...
+## Loading bin from /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/bins/bin_2.rds
+## A truncated family of distributions from NBI has been generated 
+##  and saved under the names:  
+##  dNBI.0tr pNBI.0tr qNBI.0tr rNBI.0tr NBI.0tr 
+## The type of truncation is left 
+##  and the truncation parameter is 0  
+## 20-12-2017 04:12:39
+## Subsampling 1000/9064 interactions for the null model regression...
+## 20-12-2017 04:12:39
+## Fitting with a maximum of 200 iterations...
+## GAMLSS-RS iteration 1: Global Deviance = 4410.377 
+## GAMLSS-RS iteration 2: Global Deviance = 4409.863 
+## GAMLSS-RS iteration 3: Global Deviance = 4409.543 
+## GAMLSS-RS iteration 4: Global Deviance = 4409.309 
+## GAMLSS-RS iteration 5: Global Deviance = 4409.16 
+## GAMLSS-RS iteration 6: Global Deviance = 4409.054 
+## GAMLSS-RS iteration 7: Global Deviance = 4408.979 
+## 20-12-2017 04:12:39
+## Converged: YES
+## Iterations: 7
+## 
+## Coefficients:
+## (Intercept)  28.4675260897406
+##  log(abs(dist))  -1.98454620520791
+##  b.trans_res 0.432045877269575
+##  sqrt(b.length)  -0.00333428075027022
+##  sqrt(p.length)  0.0010323670315855
+## 20-12-2017 04:12:39
+## Obtaining normalized randomized quantile residuals for the full dataset...
+## Saving fit to /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/fits/fit_2.rds...
+## 20-12-2017 04:12:39
+## Saving all residuals to /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/fits/residuals_2.rds...
+## Loading bin from /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/bins/bin_3.rds
+## A truncated family of distributions from NBI has been generated 
+##  and saved under the names:  
+##  dNBI.0tr pNBI.0tr qNBI.0tr rNBI.0tr NBI.0tr 
+## The type of truncation is left 
+##  and the truncation parameter is 0  
+## 20-12-2017 04:12:39
+## Subsampling 1000/9063 interactions for the null model regression...
+## 20-12-2017 04:12:39
+## Fitting with a maximum of 200 iterations...
+## GAMLSS-RS iteration 1: Global Deviance = 3023.936 
+## GAMLSS-RS iteration 2: Global Deviance = 3007.266 
+## GAMLSS-RS iteration 3: Global Deviance = 3001.385 
+## GAMLSS-RS iteration 4: Global Deviance = 2998.544 
+## GAMLSS-RS iteration 5: Global Deviance = 2996.936 
+## GAMLSS-RS iteration 6: Global Deviance = 2995.928 
+## GAMLSS-RS iteration 7: Global Deviance = 2995.263 
+## GAMLSS-RS iteration 8: Global Deviance = 2994.799 
+## GAMLSS-RS iteration 9: Global Deviance = 2994.47 
+## GAMLSS-RS iteration 10: Global Deviance = 2994.225 
+## GAMLSS-RS iteration 11: Global Deviance = 2994.039 
+## GAMLSS-RS iteration 12: Global Deviance = 2993.895 
+## GAMLSS-RS iteration 13: Global Deviance = 2993.783 
+## GAMLSS-RS iteration 14: Global Deviance = 2993.698 
+## 20-12-2017 04:12:40
+## Converged: YES
+## Iterations: 14
+## 
+## Coefficients:
+## (Intercept)  46.584360606142
+##  log(abs(dist))  -3.17151682803254
+##  b.trans_res 0.279716313371108
+##  sqrt(b.length)  -0.00945207741029139
+##  sqrt(p.length)  -0.00111810879222676
+## 20-12-2017 04:12:40
+## Obtaining normalized randomized quantile residuals for the full dataset...
+## Saving fit to /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/fits/fit_3.rds...
+## 20-12-2017 04:12:40
+## Saving all residuals to /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/fits/residuals_3.rds...
+## Loading bin from /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/bins/bin_4.rds
+## A truncated family of distributions from NBI has been generated 
+##  and saved under the names:  
+##  dNBI.0tr pNBI.0tr qNBI.0tr rNBI.0tr NBI.0tr 
+## The type of truncation is left 
+##  and the truncation parameter is 0  
+## 20-12-2017 04:12:40
+## Subsampling 1000/9064 interactions for the null model regression...
+## 20-12-2017 04:12:40
+## Fitting with a maximum of 200 iterations...
+## GAMLSS-RS iteration 1: Global Deviance = 2106.544 
+## GAMLSS-RS iteration 2: Global Deviance = 2090.544 
+## GAMLSS-RS iteration 3: Global Deviance = 2085.207 
+## GAMLSS-RS iteration 4: Global Deviance = 2082.606 
+## GAMLSS-RS iteration 5: Global Deviance = 2081.116 
+## GAMLSS-RS iteration 6: Global Deviance = 2080.181 
+## GAMLSS-RS iteration 7: Global Deviance = 2079.548 
+## GAMLSS-RS iteration 8: Global Deviance = 2079.101 
+## GAMLSS-RS iteration 9: Global Deviance = 2078.773 
+## GAMLSS-RS iteration 10: Global Deviance = 2078.527 
+## GAMLSS-RS iteration 11: Global Deviance = 2078.337 
+## GAMLSS-RS iteration 12: Global Deviance = 2078.189 
+## GAMLSS-RS iteration 13: Global Deviance = 2078.075 
+## GAMLSS-RS iteration 14: Global Deviance = 2077.982 
+## 20-12-2017 04:12:41
+## Converged: YES
+## Iterations: 14
+## 
+## Coefficients:
+## (Intercept)  4.31332112217969
+##  log(abs(dist))  -0.316259507626915
+##  b.trans_res 0.495162490359272
+##  sqrt(b.length)  -0.00235321773451814
+##  sqrt(p.length)  -0.00123272317076184
+## 20-12-2017 04:12:41
+## Obtaining normalized randomized quantile residuals for the full dataset...
+## Saving fit to /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/fits/fit_4.rds...
+## 20-12-2017 04:12:41
+## Saving all residuals to /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/fits/residuals_4.rds...
+## Loading bin from /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/bins/bin_5.rds
+## A truncated family of distributions from NBI has been generated 
+##  and saved under the names:  
+##  dNBI.0tr pNBI.0tr qNBI.0tr rNBI.0tr NBI.0tr 
+## The type of truncation is left 
+##  and the truncation parameter is 0  
+## 20-12-2017 04:12:41
+## Subsampling 1000/9064 interactions for the null model regression...
+## 20-12-2017 04:12:41
+## Fitting with a maximum of 200 iterations...
+## GAMLSS-RS iteration 1: Global Deviance = 1532.325 
+## GAMLSS-RS iteration 2: Global Deviance = 1527.447 
+## GAMLSS-RS iteration 3: Global Deviance = 1525.123 
+## GAMLSS-RS iteration 4: Global Deviance = 1523.789 
+## GAMLSS-RS iteration 5: Global Deviance = 1522.941 
+## GAMLSS-RS iteration 6: Global Deviance = 1522.368 
+## GAMLSS-RS iteration 7: Global Deviance = 1521.958 
+## GAMLSS-RS iteration 8: Global Deviance = 1521.661 
+## GAMLSS-RS iteration 9: Global Deviance = 1521.434 
+## GAMLSS-RS iteration 10: Global Deviance = 1521.259 
+## GAMLSS-RS iteration 11: Global Deviance = 1521.121 
+## GAMLSS-RS iteration 12: Global Deviance = 1521.009 
+## GAMLSS-RS iteration 13: Global Deviance = 1520.919 
+## 20-12-2017 04:12:42
+## Converged: YES
+## Iterations: 13
+## 
+## Coefficients:
+## (Intercept)  49.3547299851669
+##  log(abs(dist))  -3.27304942601771
+##  b.trans_res 0.316554429108216
+##  sqrt(b.length)  -0.00072049664423865
+##  sqrt(p.length)  -0.00608852375093823
+## 20-12-2017 04:12:42
+## Obtaining normalized randomized quantile residuals for the full dataset...
+## Saving fit to /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/fits/fit_5.rds...
+## 20-12-2017 04:12:42
+## Saving all residuals to /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/fits/residuals_5.rds...</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">baits_dir =<span class="st"> </span><span class="kw">paste0</span>(base,<span class="st">&quot;/baits&quot;</span>)
+
+<span class="kw">split_baits_fs</span>(bins_dir,<span class="dt">residuals_dir =</span> fits_dir, <span class="dt">indices=</span><span class="dv">1</span><span class="op">:</span><span class="dv">5</span>, <span class="dt">output_dir =</span> baits_dir)</code></pre></div>
+<pre><code>## 20-12-2017 04:12:42
+## Loading bins...
+## /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/bins/bin_1.rds
+##  /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/bins/bin_2.rds
+##  /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/bins/bin_3.rds
+##  /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/bins/bin_4.rds
+##  /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/bins/bin_5.rds
+## 20-12-2017 04:12:42
+## Loading residuals...
+## /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/fits/residuals_1.rds
+##  /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/fits/residuals_2.rds
+##  /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/fits/residuals_3.rds
+##  /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/fits/residuals_4.rds
+##  /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/fits/residuals_5.rds
+## 20-12-2017 04:12:42
+## Calculating p-values and performing bin-wise FDR-adjustments...
+## 20-12-2017 04:12:42
+## Saving baits...
+## /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_53559.rds
+## /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_71638.rds
+## /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_95958.rds
+## /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_96180.rds
+## /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_102201.rds
+## /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_119435.rds
+## /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_119522.rds
+## /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_144385.rds
+## /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_162008.rds
+## /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_175487.rds
+## /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_203500.rds
+## /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_243669.rds
+## /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_262362.rds
+## /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_268979.rds
+## /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_272961.rds
+## /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_312780.rds
+## /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_328019.rds
+## /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_341315.rds
+## /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_363262.rds
+## /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_366588.rds
+## /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_466090.rds
+## /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_582536.rds
+## /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_618421.rds
+## /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_658681.rds
+## /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_661722.rds
+## 20-12-2017 04:12:43
+## Plotting baits...</code></pre>
+<pre><code>## 20-12-2017 04:12:47
+## Done.</code></pre>
+<pre><code>## $output_dir
+## [1] &quot;/home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits&quot;
+## 
+## $bait_paths
+##  [1] &quot;/home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_53559.rds&quot; 
+##  [2] &quot;/home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_71638.rds&quot; 
+##  [3] &quot;/home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_95958.rds&quot; 
+##  [4] &quot;/home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_96180.rds&quot; 
+##  [5] &quot;/home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_102201.rds&quot;
+##  [6] &quot;/home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_119435.rds&quot;
+##  [7] &quot;/home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_119522.rds&quot;
+##  [8] &quot;/home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_144385.rds&quot;
+##  [9] &quot;/home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_162008.rds&quot;
+## [10] &quot;/home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_175487.rds&quot;
+## [11] &quot;/home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_203500.rds&quot;
+## [12] &quot;/home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_243669.rds&quot;
+## [13] &quot;/home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_262362.rds&quot;
+## [14] &quot;/home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_268979.rds&quot;
+## [15] &quot;/home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_272961.rds&quot;
+## [16] &quot;/home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_312780.rds&quot;
+## [17] &quot;/home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_328019.rds&quot;
+## [18] &quot;/home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_341315.rds&quot;
+## [19] &quot;/home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_363262.rds&quot;
+## [20] &quot;/home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_366588.rds&quot;
+## [21] &quot;/home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_466090.rds&quot;
+## [22] &quot;/home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_582536.rds&quot;
+## [23] &quot;/home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_618421.rds&quot;
+## [24] &quot;/home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_658681.rds&quot;
+## [25] &quot;/home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_661722.rds&quot;</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">baitlist =<span class="st"> </span><span class="kw">paste0</span>(baits_dir,<span class="st">&quot;/baitlist.txt&quot;</span>)
+rjmcmc_dir =<span class="st"> </span><span class="kw">paste0</span>(base,<span class="st">&quot;/rjmcmc&quot;</span>)
+omega_power =<span class="st"> </span><span class="fl">4.7</span>
+
+<span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="dv">3</span>){
+ <span class="kw">peaky_fs</span>(baitlist,i,<span class="dt">output_dir=</span>rjmcmc_dir,<span class="dt">omega_power=</span>omega_power)
+}</code></pre></div>
+<pre><code>## 20-12-2017 04:12:47
+## Loaded bait 53559 from path: /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_53559.rds...
+## 20-12-2017 04:12:47
+## Constructing distance matrix with omega=10^-4.7...
+## 1e+06 iterations will be run...
+## Setting user specified argument AlphaPriorMu 
+## Setting user specified argument AlphaPriorSd 
+## Setting user specified argument Alpha_Initial_Value 
+## Setting user specified argument GaussianResidual_Initial_Value 
+## Setting user specified argument GaussianResidualPrior_UnifArg1 
+## Setting user specified argument GaussianResidualPrior_UnifArg2 
+## Setting user specified argument GaussianResidualPriorFamily 
+## Setting user specified argument Add_Move_Probability 
+## Setting user specified argument Delete_Move_Probability 
+## Setting user specified argument Swap_Move_Probability 
+## 0 observations deleted due to missingnessWriting data into an input file for BGLiMS...
+## Data written in 0 hrs 0 mins and 12 seconds.
+## Calling BGLiMS Java algorithm with command: 
+## java -jar &quot;/home/cq/R/x86_64-pc-linux-gnu-library/3.4/R2BGLiMS/BGLiMS/BGLiMS.jar&quot; &quot;/tmp/Rtmpth61yH/file697926bb8cd3_Dec20041247_Arguments.txt&quot; &quot;/tmp/Rtmpth61yH/file6979389e00ee_Dec20041247_Data.txt&quot; &quot;/tmp/Rtmpth61yH/file697949a41230_Dec20041247_Results.txt&quot; 1000000 0 100 100000 54917 1 1 0 -1 1 1 1 826 
+## BGLiMS Java computation finished in 0 hrs 1 mins and 38 seconds.
+## Reading BGLiMS posterior output...
+## Posterior output processed in 0 hrs 0 mins and 5 seconds.
+## Finished.
+## 20-12-2017 04:14:42
+## Saving RJMCMC results to /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/rjmcmc/rjmcmc_53559.rds
+## 20-12-2017 04:14:42
+## Done.
+## 20-12-2017 04:14:42
+## Loaded bait 71638 from path: /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_71638.rds...
+## 20-12-2017 04:14:43
+## Constructing distance matrix with omega=10^-4.7...
+## 1e+06 iterations will be run...
+## Setting user specified argument AlphaPriorMu 
+## Setting user specified argument AlphaPriorSd 
+## Setting user specified argument Alpha_Initial_Value 
+## Setting user specified argument GaussianResidual_Initial_Value 
+## Setting user specified argument GaussianResidualPrior_UnifArg1 
+## Setting user specified argument GaussianResidualPrior_UnifArg2 
+## Setting user specified argument GaussianResidualPriorFamily 
+## Setting user specified argument Add_Move_Probability 
+## Setting user specified argument Delete_Move_Probability 
+## Setting user specified argument Swap_Move_Probability 
+## 0 observations deleted due to missingnessWriting data into an input file for BGLiMS...
+## Data written in 0 hrs 1 mins and 27 seconds.
+## Calling BGLiMS Java algorithm with command: 
+## java -jar &quot;/home/cq/R/x86_64-pc-linux-gnu-library/3.4/R2BGLiMS/BGLiMS/BGLiMS.jar&quot; &quot;/tmp/Rtmpth61yH/file69795916ef5_Dec20041443_Arguments.txt&quot; &quot;/tmp/Rtmpth61yH/file69794a7e25f5_Dec20041443_Data.txt&quot; &quot;/tmp/Rtmpth61yH/file6979754646b6_Dec20041443_Results.txt&quot; 1000000 0 100 100000 621702 1 1 0 -1 1 1 1 2014 
+## BGLiMS Java computation finished in 0 hrs 3 mins and 56 seconds.
+## Reading BGLiMS posterior output...
+## Posterior output processed in 0 hrs 0 mins and 10 seconds.
+## Finished.
+## 20-12-2017 04:20:16
+## Saving RJMCMC results to /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/rjmcmc/rjmcmc_71638.rds
+## 20-12-2017 04:20:18
+## Done.
+## 20-12-2017 04:20:18
+## Loaded bait 95958 from path: /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_95958.rds...
+## 20-12-2017 04:20:18
+## Constructing distance matrix with omega=10^-4.7...
+## 1e+06 iterations will be run...
+## Setting user specified argument AlphaPriorMu 
+## Setting user specified argument AlphaPriorSd 
+## Setting user specified argument Alpha_Initial_Value 
+## Setting user specified argument GaussianResidual_Initial_Value 
+## Setting user specified argument GaussianResidualPrior_UnifArg1 
+## Setting user specified argument GaussianResidualPrior_UnifArg2 
+## Setting user specified argument GaussianResidualPriorFamily 
+## Setting user specified argument Add_Move_Probability 
+## Setting user specified argument Delete_Move_Probability 
+## Setting user specified argument Swap_Move_Probability 
+## 0 observations deleted due to missingnessWriting data into an input file for BGLiMS...
+## Data written in 0 hrs 1 mins and 17 seconds.
+## Calling BGLiMS Java algorithm with command: 
+## java -jar &quot;/home/cq/R/x86_64-pc-linux-gnu-library/3.4/R2BGLiMS/BGLiMS/BGLiMS.jar&quot; &quot;/tmp/Rtmpth61yH/file69794678cb4d_Dec20042018_Arguments.txt&quot; &quot;/tmp/Rtmpth61yH/file69796d025c8b_Dec20042018_Data.txt&quot; &quot;/tmp/Rtmpth61yH/file69793baad367_Dec20042018_Results.txt&quot; 1000000 0 100 100000 967958 1 1 0 -1 1 1 1 2037 
+## BGLiMS Java computation finished in 0 hrs 3 mins and 56 seconds.
+## Reading BGLiMS posterior output...
+## Posterior output processed in 0 hrs 0 mins and 10 seconds.
+## Finished.
+## 20-12-2017 04:25:41
+## Saving RJMCMC results to /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/rjmcmc/rjmcmc_95958.rds
+## 20-12-2017 04:25:42
+## Done.</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">rjmcmc_list</span>(rjmcmc_dir)</code></pre></div>
+<pre><code>## 20-12-2017 04:25:42
+## Looking for RJMCMC results in /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/rjmcmc
+## Found 7 files in total.
+## Found 3 files containing RJMCMC results.</code></pre>
+<pre><code>## $filename
+## [1] &quot;/home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/rjmcmc/rjmcmclist.txt&quot;
+## 
+## $rjmcmc_paths
+## [1] &quot;/home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/rjmcmc/rjmcmc_53559.rds&quot;
+## [2] &quot;/home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/rjmcmc/rjmcmc_71638.rds&quot;
+## [3] &quot;/home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/rjmcmc/rjmcmc_95958.rds&quot;</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">rjmcmclist =<span class="st"> </span><span class="kw">paste0</span>(rjmcmc_dir,<span class="st">&quot;/rjmcmclist.txt&quot;</span>)
+baits_rjmcmc_dir =<span class="st"> </span><span class="kw">paste0</span>(base,<span class="st">&quot;/baits_rjmcmc&quot;</span>)
+<span class="kw">interpret_peaky_fs</span>(rjmcmclist,<span class="dv">1</span>,baits_dir,baits_rjmcmc_dir,omega_power)</code></pre></div>
+<pre><code>## Loading RJMCMC result and bait:
+## /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/rjmcmc/rjmcmc_53559.rds
+## /home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits/bait_53559.rds
+## 20-12-2017 04:25:42
+## Calculating alphas...
+## 20-12-2017 04:25:42
+## Calculating posteriors...
+## 20-12-2017 04:25:43
+## Calculating betas means and medians...
+## 20-12-2017 04:25:43
+## Constructing distance matrix with omega=10^-4.7...
+## Finding RJMCMC predictions based on mean betas...
+## 20-12-2017 04:25:43
+## Wrapping up...
+## 20-12-2017 04:25:43
+## Saving the bait with its RJMCMC results to/home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits_rjmcmc/bait_rjmcmc_53559.rds</code></pre>
+<pre><code>## $output_path
+## [1] &quot;/home/cq/R/x86_64-pc-linux-gnu-library/3.4/peaky/extdata/baits_rjmcmc/bait_rjmcmc_53559.rds&quot;
+## 
+## $output
+##      baitID preyID N b.chr     b.mid b.length p.chr     p.mid p.length
+##   1:  53559  52096 1     1 212337456     8519     1 207345336     1932
+##   2:  53559  52107 1     1 212337456     8519     1 207380122      891
+##   3:  53559  52112 1     1 212337456     8519     1 207394962     6067
+##   4:  53559  52113 1     1 212337456     8519     1 207398127      260
+##   5:  53559  52121 1     1 212337456     8519     1 207434420     1859
+##  ---                                                                  
+## 822:  53559  55157 1     1 212337456     8519     1 217191554     2183
+## 823:  53559  55184 1     1 212337456     8519     1 217272896     2230
+## 824:  53559  55185 1     1 212337456     8519     1 217275236     2449
+## 825:  53559  55193 1     1 212337456     8519     1 217299256     3869
+## 826:  53559  55197 1     1 212337456     8519     1 217318317     1404
+##          dist b.trans b.trans_res dist.bin    residual     p.res   fdr.res
+##   1: -4992120     151   0.1080277        5  0.27121906 0.7862226 0.9983839
+##   2: -4957334     151   0.1080277        5  0.11976017 0.9046731 0.9983839
+##   3: -4942494     151   0.1080277        5  0.54407373 0.5863907 0.9983839
+##   4: -4939329     151   0.1080277        5 -0.09836479 0.9216426 0.9983839
+##   5: -4903036     151   0.1080277        5  0.65505867 0.5124300 0.9983839
+##  ---                                                                      
+## 822:  4854098     151   0.1080277        5 -0.51993932 0.6031059 0.9983839
+## 823:  4935440     151   0.1080277        5  0.41829477 0.6757316 0.9983839
+## 824:  4937780     151   0.1080277        5 -0.25624461 0.7977620 0.9983839
+## 825:  4961800     151   0.1080277        5 -0.83029704 0.4063709 0.9983839
+## 826:  4980861     151   0.1080277        5 -1.59512663 0.1106839 0.9517677
+##      p.res.onesided fdr.res.onesided rjmcmc rjmcmc_pos rjmcmc_pos_present
+##   1:      0.3931113        0.9957580 0.0008      5e-04          0.6250000
+##   2:      0.4523366        0.9957580 0.0011      4e-04          0.3636364
+##   3:      0.2931954        0.9957580 0.0006      4e-04          0.6666667
+##   4:      0.5391787        0.9957580 0.0011      5e-04          0.4545455
+##   5:      0.2562150        0.9957580 0.0012      8e-04          0.6666667
+##  ---                                                                     
+## 822:      0.6984471        0.9957580 0.0013      5e-04          0.3846154
+## 823:      0.3378658        0.9957580 0.0007      2e-04          0.2857143
+## 824:      0.6011190        0.9957580 0.0015      3e-04          0.2000000
+## 825:      0.7968146        0.9957580 0.0014      4e-04          0.2857143
+## 826:      0.9446580        0.9975569 0.0008      2e-04          0.2500000
+##      rjmcmc_neg rjmcmc_neg_present     beta_mean beta_mean_present beta
+##   1:     0.0003          0.3750000  7.410318e-05        0.16404204    0
+##   2:     0.0007          0.6363636 -1.564885e-04        0.01676958    0
+##   3:     0.0002          0.3333333  6.416478e-05        0.17281395    0
+##   4:     0.0006          0.5454545 -7.369161e-05        0.23981025    0
+##   5:     0.0004          0.3333333  5.345259e-05        0.10827718    0
+##  ---                                                                   
+## 822:     0.0008          0.6153846 -1.786823e-04        0.02387244    0
+## 823:     0.0005          0.7142857 -2.271066e-05        0.25148451    0
+## 824:     0.0012          0.8000000 -3.879377e-04        0.04654015    0
+## 825:     0.0010          0.7142857 -2.804100e-05        0.25350447    0
+## 826:     0.0006          0.7500000 -1.824897e-04        0.04635587    0
+##      beta_present     predicted predicted_present  pos
+##   1:  0.196350869  7.410318e-05               NaN   P1
+##   2:  0.004664491 -1.564885e-04               NaN   P2
+##   3:  0.096226289  6.416478e-05               NaN   P3
+##   4:  0.193589940 -7.369161e-05               NaN   P4
+##   5:  0.079496678  5.345259e-05               NaN   P5
+##  ---                                                  
+## 822:  0.017199554 -1.786823e-04               NaN P822
+## 823:  0.251484506 -2.271066e-05               NaN P823
+## 824:  0.060339839 -3.879377e-04               NaN P824
+## 825:  0.113132398 -2.804100e-05               NaN P825
+## 826:  0.046355867 -1.824897e-04               NaN P826</code></pre>
 </div>
 
 
