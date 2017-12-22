@@ -428,7 +428,7 @@ split_baits_fs = function(bins_dir, residuals_dir, indices, output_dir, plots=TR
 #' @return The output directory.
 #'
 #' Details.
-#' The steepness of the function to be fitted to putative peaks is determined by \eqn{\omega} according to \eqn{\beta \exp{- \abs{\omega * d}}}, where \beta represents peak height and \eqn{d} the distance from the center of the peak in bp.
+#' The steepness of the function to be fitted to putative peaks is determined by \eqn{\omega} according to \eqn{\beta} exp(-\eqn{|\omega * d|}), where \eqn{\beta} represents peak height and \eqn{d} the distance from the center of the peak in bp.
 #'
 #' @examples
 #' base = system.file("extdata",package="peaky")
@@ -516,7 +516,7 @@ peaky = function(bait, omega_power, iterations=1e6, min_interactions=20, log_fil
 #' @return List containing the model output directory and the models themselves.
 #'
 #' Details.
-#' The steepness of the function to be fitted to putative peaks is determined by \eqn{\omega} according to \eqn{\beta \exp{- \abs{\omega * d}}}, where \beta represents peak height and \eqn{d} the distance from the center of the peak in bp.
+#' The steepness of the function to be fitted to putative peaks is determined by \eqn{\omega} according to \eqn{\beta} exp(-\eqn{|\omega * d|}), where \eqn{\beta} represents peak height and \eqn{d} the distance from the center of the peak in bp.
 #'
 #' @examples
 #' base = system.file("extdata",package="peaky")
@@ -593,7 +593,7 @@ mppi = function(thin,zero_min,zero_max,given_present=FALSE){
 #' Reports and lists files that contain peaky models in preparation for their interpretation with interpret_peaky_fs()
 #'
 #' @param Path to a folder containing the results produced by peaky_fs()
-#' @return List containing the path to a report of all results found ($filename), and the paths to the results themselves ($rjmcmc_paths.
+#' @return List containing the path to a report of all results found ($filename), and the paths to the results themselves ($rjmcmc_paths).
 #'
 #' @export
 
@@ -682,7 +682,7 @@ interpret_peaky = function(bait, peaks, omega_power, log_file=NA){
 
   genome = D$dist
 
-  note(L,T,"Constructing distance matrix with omega=10^-", omega_power,"...")
+  note(L,T,"Constructing distance matrix with omega=10^", omega_power,"...")
 
   omega = 10^omega_power
 

@@ -19,15 +19,7 @@ Peaky requires two input files. The first contains the raw CHi-C signal: readcou
 
 An example of each is included with the package and used for the analysis below:
 
-
-```{r, include=FALSE}
-#library(R2BGLiMS) #loaded separately for now
-#library(gamlss) #loaded separately for now
-#gamlss.tr::gen.trun(0,family="NBI",type="left",name=".0tr")
-#NBI.0tr <<- gamlss.tr::trun(0,family="NBI",type="left",name=".0tr", local=FALSE)
-```
-
-```{r, echo=TRUE, cache=TRUE}
+```{r, echo=TRUE, cache=TRUE, message=FALSE}
 library(peaky)
 
 base = system.file("extdata",package="peaky")
@@ -64,13 +56,14 @@ plot(models[[1]]$fit)
 
 Taking the observed readcounts and adjusting for the effects of biological and technical noise in the models gives us normalized readcounts: they quantify the extent to which the observed readcounts exceed those predicted under the null. In practice, the normalized readcounts are the randomized quantile residuals of each model. Note that the Q-Q plot shows a series of outliers: unexpectedly high adjusted read counts.
 
-The adjusted readcounts for all putative interaction are extracted from the models below. They are tacked onto the interactions, which are all grouped together again using `split_baits()`:
+The adjusted readcounts for all putative interaction are extracted from the models below. They are tacked onto the interactions, which are all grouped together again using `split_baits()`. Note that the p-values calculated here mark the significance of the observed readcounts before local patterns across fragments are considered (such patterns will be considered later, using `peaky()`).
 
 ```{r, echo=TRUE, cache=TRUE}
 residuals = lapply(models, "[[", "residuals")
 bins = split(BI$interactions, BI$interactions$dist.bin)
 BTS = split_baits(bins, residuals)
 ```
+
 
 Plotting the adjusted readcounts associated with a single bait (up to 1Mb around it) reveals that there is still an autocorrelated signal: 
 ```{r, echo=TRUE, cache=TRUE, fig.height=4, fig.width=7}
@@ -82,50 +75,66 @@ plot(x=zoom$dist,
      ylab="Adjusted readcount",
      main=paste("Bait",unique(zoom$baitID)))
 ```
-A central assumption of Peaky is that this signal stems from few direct contacts, regions above which the CHi-C signal peaks. The signal then decays amongst neighboring fragments, with which collateral contacts are merely collateral. 
+A central assumption of Peaky is that this signal stems from few direct contacts, regions above which the CHi-C signal peaks. The signal then decays amongst neighboring fragments, with which contacts are merely collateral. 
 
 
 ##Joint analysis of neighboring fragments
 Next, Peaky identifies sets of direct contacts that explain the peaks in the adjusted readcounts. It takes a single bait and proposes direct contacts with several of its prey fragments simultaneously, at varying strengths.  
 
-To determine where direct contacts occur, Peaky must be told what a peak in the adjusted readcounts looks like: how quickly would the signal decay as we consider fragments further and further away from a fragment that is directly contacted?  The steepness of the expected decay is set via the parameter \omega:
+To determine where direct contacts occur, Peaky must be told what a peak in the adjusted readcounts looks like: how quickly would the signal decay as we consider fragments further and further away from a fragment that is directly contacted?  The steepness of the expected decay is set via the parameter $\omega$:
 
 \begin{equation}
-y = \beta \exp{- \abs{\omega * d}}
+y = \beta \exp{(-|\omega * d|)}
 \end{equation}
 
-where $y$ is the contribution of a specific peak to the adjusted readcount we observe, \beta represents peak height and $d$ the distance from the center of the peak in bp.
+where $y$ is the contribution of a specific peak (direct contact) to the adjusted readcount we observe, $\beta$ represents peak height and $d$ the distance from the center of the peak in bp.
 
-
-We can look at several isolated peaks to see what would be an appropriate choice of omega:
+We can look at several isolated peaks to see what would be an appropriate choice of $\omega$. For example, from the decay seen around the highest peak of the bait above, we can estimate that $\omega \approx 10^{-5}$:
 ```{r, cache=TRUE, fig.height=4, fig.width=7}
+#Isolate the highest peak and adjusted readcounts within 40 kbp
 peak_center = zoom$dist[which.max(zoom$residual)]
 zoom$distance_from_peak = abs(zoom$dist-peak_center)
 single_peak = zoom[distance_from_peak<4e5,]
-plot(single_peak$distance_from_peak, single_peak$residual)
 
-
-dist_exp = function(offset, strength, omega_power) {
-  omega = 10^-omega_power
+#Define the distance function and find the best fit for omega
+dist_exp = function(offset, strength, omega_power){
+  omega = 10^omega_power
   strength * exp(-(abs(offset * omega)))
 }
 
-nls(residual~dist_exp(distance_from_peak,strength,omega_power), 
+fit_omega = nls(residual~dist_exp(distance_from_peak,strength,omega_power), 
     data=single_peak, 
-    start=list(strength=5, omega_power=5))
+    start=list(strength=5, omega_power=-3))
 
-#plot this
+{
+plot(single_peak$distance_from_peak, single_peak$residual, 
+     main=paste0("Decay of signal for an isolated peak\nEstimate of omega = 10^",
+                round(coefficients(fit_omega)["omega_power"],3)),
+     xlab="Distance from center of peak (bp)",
+     ylab="Adjusted readcount")
+lines(single_peak$distance_from_peak, fitted.values(fit_omega), col="red", lwd=3)
+}
 ```
 
+At this point, Peaky is ready to determine where peaks, or direct contacts, occur in the signal for the bait above. It does so iteratively, by proposing different sets (i.e. different models) of hypothetical peaks, and settling more often on more likely sets (through reversible-jump Markov chain Monte Carlo estimation). The number of sets proposed is controlled by the iterations parameter of `peaky()`. It is recommended to increase the value until the results (e.g. MPPC, see below) are highly correlated between different runs of `peaky()` (note that its output is not deterministic). Raw models and their likelihoods are stored in PKS, but these do not have to be inspected manually (although this is possible, e.g. to remove burn-in models or to construct trace plots). Instead, summary statistics can be calculated with `interpret_peaky()`. For each fragment X, these are stored in the following columns:
 
-DO FS FIRSt BECAUSE THEN YOU HAVE THE BAITS
-
-
-example of how to fit dist func
+* _rjmcmc_: Proportion of sets featuring a peak at X
+* _rjmcmc_pos_: Porporion of sets featuring an upward peak at X 
+    + referred to as the marginal posterior probability of contact (MPPC) in the main paper
+* _rjmcmc_neg_: Proportion of sets featuring a downward peak at X
+* _rjmcmc_pos_present_: Proportion of peaks at X which were upward
+* _rjmcmc_neg_present_: Proportion of peaks at X which were downward
+* _beta_: Median contact strength at X across all sets (includes values of 0 whenever there was no peak at X)
+* _beta_mean_: Mean contact strength at X across all sets (includes values of 0 whenever there was no peak at X)
+* _beta_present_: Median contact strength at X whenever a peak was present
+* _beta_mean_present_: Mean contact strength at X whenever a peak was present
+* _predicted_: Reconstructed signal from all peaks, based on beta_mean
+* _predicted_present_: Reconstructed signal from all peaks, based on beta_mean_present
+    + can be undefined when beta_mean_present cannot be calculated, i.e. when a fragment has never been considered as a peak location
 
 ```{r, echo=TRUE, cache=TRUE, fig.height=10, fig.width=7}
 relevant_bait = BTS[baitID==618421]
-omega_power=4.7
+omega_power = -5
 PKS = peaky(relevant_bait, omega_power, iterations=1e6)
 P = interpret_peaky(relevant_bait, PKS, omega_power)
 
@@ -142,8 +151,7 @@ plot(x=zoom$dist, xlab="Distance from bait (bp)",
      y=zoom$rjmcmc_pos, ylab="MPPC",
      col="blue")
 ```     
-
-explain all columns in P
+While many fragments originally had high (adjusted) readcounts, the peaks in the CHi-C signal can be explained by only 3-4 direct contacts, and MPPC values jump up where these occur.
 
 ##Filesystem version
 
@@ -151,12 +159,12 @@ To make the software more convenient for use on a cluster, Peaky has wrapper fun
 
 The workflow is similar to (and arguably simpler than) that of the interactive version, and allows for parallelization at the following computationally intensive steps: 
 
-*Removing initial noise (going from raw readcounts to adjusted readcounts) with `model_bin_fs`
-*Separating direct from collateral contacts with `peaky_fs()`
+* Removing initial noise (going from raw readcounts to adjusted readcounts) with `model_bin_fs`
+* Separating direct from collateral contacts with `peaky_fs()`
 
+These two functions are demonstrated within for-loops in the example below, but would normally be run in parallel (e.g. via a scheduler). 
 
-
-```{r, echo=TRUE, cache=TRUE, fig.height=10, fig.width=7}
+```{r, echo=TRUE, cache=TRUE, results='hide'}
 base = system.file("extdata",package="peaky")
 interactions_file = paste0(base,"/counts.tsv")
 bins_dir = paste0(base,"/bins")
@@ -176,9 +184,9 @@ split_baits_fs(bins_dir,residuals_dir = fits_dir, indices=1:5, output_dir = bait
 
 baitlist = paste0(baits_dir,"/baitlist.txt")
 rjmcmc_dir = paste0(base,"/rjmcmc")
-omega_power = 4.7
+omega_power = -5
 
-for(i in 1:3){
+for(i in 1:1){
  peaky_fs(baitlist,i,output_dir=rjmcmc_dir,omega_power=omega_power)
 }
 
@@ -188,3 +196,5 @@ rjmcmclist = paste0(rjmcmc_dir,"/rjmcmclist.txt")
 baits_rjmcmc_dir = paste0(base,"/baits_rjmcmc")
 interpret_peaky_fs(rjmcmclist,1,baits_dir,baits_rjmcmc_dir,omega_power)
 ```
+
+After running the code above, results should be neatly saved in the package's directory. 

@@ -54,6 +54,6 @@ rjmcmc_list(rjmcmc_dir)
 
 rjmcmclist = paste0(rjmcmc_dir,"/rjmcmclist.txt")
 baits_rjmcmc_dir = paste0(base,"/baits_rjmcmc")
-interpret_peaky_fs(rjmcmclist,1,omega_power,baits_dir,baits_rjmcmc_dir)
+interpret_peaky_fs(rjmcmclist,1,baits_dir,baits_rjmcmc_dir,omega_power)
 }
 }

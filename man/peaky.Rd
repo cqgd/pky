@@ -20,7 +20,7 @@ peaky(bait, omega_power, iterations = 1e+06, min_interactions = 20,
 The output directory.
 
 Details.
-The steepness of the function to be fitted to putative peaks is determined by \eqn{\omega} according to \eqn{\beta \exp{- \abs{\omega * d}}}, where \beta represents peak height and \eqn{d} the distance from the center of the peak in bp.
+The steepnesss of the function to be fitted to putative peaks is determined by \eqn{\omega} according to \eqn{\beta} exp(-\eqn{|\omega * d|}), where \beta represents peak height and \eqn{d} the distance from the center of the peak in bp.
 }
 \description{
 Fits additive models of peaks of varying strengths in various locations to the adjusted readcounts via RJMCMC, and stores these models on disk.
