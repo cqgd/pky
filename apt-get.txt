@@ -1,4 +1,0 @@
-#apt-get:
-#openjdk (default)
-#libssl-dev
-#libcurl4-openssl-dev
