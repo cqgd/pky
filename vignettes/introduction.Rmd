@@ -119,7 +119,7 @@ lines(single_peak$distance_from_peak, fitted.values(fit_omega), col="red", lwd=3
 At this point, Peaky is ready to determine where peaks, or direct contacts, occur in the signal for the bait above. It does so iteratively, by proposing different sets (i.e. different models) of hypothetical peaks, and settling more often on more likely sets (through reversible-jump Markov chain Monte Carlo estimation). The number of sets proposed is controlled by the iterations parameter of `peaky()`. It is recommended to increase the value until the results (e.g. MPPC, see below) are highly correlated between different runs of `peaky()` (note that its output is not deterministic). Raw models and their likelihoods are stored in PKS, but these do not have to be inspected manually (although this is possible, e.g. to remove burn-in models or to construct trace plots). Instead, summary statistics can be calculated with `interpret_peaky()`. For each fragment X, these are stored in the following columns:
 
 * _rjmcmc_: Proportion of sets featuring a peak at X
-* _rjmcmc_pos_: Porporion of sets featuring an upward peak at X 
+* _rjmcmc_pos_: Proporion of sets featuring an upward peak at X 
     + referred to as the marginal posterior probability of contact (MPPC) in the main paper
 * _rjmcmc_neg_: Proportion of sets featuring a downward peak at X
 * _rjmcmc_pos_present_: Proportion of peaks at X which were upward
