@@ -54,7 +54,7 @@ note = function(logfile=NA,logtime=T,...){
 #'
 #' @export
 
-bin_interactions = function(interactions, fragments, bins=5, min_dist=2.5e3, log_file=NA){
+bin_interactions = function(interactions, fragments, bins=5, min_dist=0, log_file=NA){
   D = interactions; rm(interactions)
   L = log_file; rm(log_file)
 
@@ -86,8 +86,8 @@ bin_interactions = function(interactions, fragments, bins=5, min_dist=2.5e3, log
   trans[,b.trans_res:=trans_model$residuals]
   D = merge(D,trans[,.(baitID, b.trans, b.trans_res)],by="baitID",all.x=TRUE)
 
-  note(L,T,"Excluding ",D[,sum(abs(dist)<min_dist)]," interactions that are too proximal (distance < ",min_dist," bp)...")
-  subset(D, abs(dist)>=min_dist)
+  note(L, T, "Excluding ", D[, sum(abs(dist) < min_dist, na.rm = TRUE)]," interactions that are too proximal (distance < ", min_dist, " bp)...")
+  D = D[is.na(dist) | abs(dist) >= min_dist]
 
   note(L,T,"Assigning ",bins," distance bins...")
   D[p.chr==b.chr, dist.bin:=as.factor(as.integer(cut_number(D[p.chr==b.chr,abs(dist)],n=bins)))]
@@ -120,7 +120,7 @@ bin_interactions = function(interactions, fragments, bins=5, min_dist=2.5e3, log
 #' }
 #' @export
 
-bin_interactions_fs  = function(interactions_file, fragments_file, output_dir, min_dist=2.5e3, bins=5){
+bin_interactions_fs  = function(interactions_file, fragments_file, output_dir, min_dist=0, bins=5){
   L = paste0(output_dir,"/log_bins.txt")
   if(!dir.exists(output_dir)){dir.create(output_dir,recursive=TRUE)}
   write("BINNING\n",file=L,append=FALSE,sep="")
