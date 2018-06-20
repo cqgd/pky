@@ -7,7 +7,7 @@ if(exists("GO")){
   library(devtools)
   library(roxygen2)
   rm(GO)
-  setwd("~/Work/pky")
+  setwd("~/Work/pky_dev")
   document()
   install()
   library(peaky)
@@ -54,7 +54,7 @@ note = function(logfile=NA,logtime=T,...){
 #'
 #' @export
 
-bin_interactions = function(interactions, fragments, bins=5, log_file=NA){
+bin_interactions = function(interactions, fragments, bins=5, min_dist=2.5e3, log_file=NA){
   D = interactions; rm(interactions)
   L = log_file; rm(log_file)
 
@@ -85,6 +85,9 @@ bin_interactions = function(interactions, fragments, bins=5, log_file=NA){
   trans_model = gamlss(b.trans ~ as.factor(b.chr), data=trans, family=gamlss.dist::NBI)
   trans[,b.trans_res:=trans_model$residuals]
   D = merge(D,trans[,.(baitID, b.trans, b.trans_res)],by="baitID",all.x=TRUE)
+
+  note(L,T,"Excluding ",D[,sum(abs(dist)<min_dist)]," interactions that are too proximal (distance < ",min_dist," bp)...")
+  subset(D, abs(dist)>=min_dist)
 
   note(L,T,"Assigning ",bins," distance bins...")
   D[p.chr==b.chr, dist.bin:=as.factor(as.integer(cut_number(D[p.chr==b.chr,abs(dist)],n=bins)))]
@@ -117,7 +120,7 @@ bin_interactions = function(interactions, fragments, bins=5, log_file=NA){
 #' }
 #' @export
 
-bin_interactions_fs  = function(interactions_file, fragments_file, output_dir, bins=5){
+bin_interactions_fs  = function(interactions_file, fragments_file, output_dir, min_dist=2.5e3, bins=5){
   L = paste0(output_dir,"/log_bins.txt")
   if(!dir.exists(output_dir)){dir.create(output_dir,recursive=TRUE)}
   write("BINNING\n",file=L,append=FALSE,sep="")
@@ -128,7 +131,7 @@ bin_interactions_fs  = function(interactions_file, fragments_file, output_dir, b
   note(L,T, "Reading fragment information from ",fragments_file)
   fragments = fread(fragments_file)
 
-  BI = bin_interactions(D, fragments, bins, L)
+  BI = bin_interactions(D, fragments, bins, min_dist, L)
 
   save_bin = function(Dbin,output_dir,bins){
     filename = paste0(output_dir,"/bin_",as.character(Dbin$dist.bin)[1],".rds")
@@ -788,11 +791,3 @@ interpret_peaky_fs = function(rjmcmclist, index, baits_dir, output_dir, omega_po
 ######################################################
 ### INTERPRET RJMCMC.end
 ######################################################
-
-
-
-
-
-
-
-
