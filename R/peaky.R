@@ -37,6 +37,7 @@ note = function(logfile=NA,logtime=T,...){
 #' @param interactions Data table containing putative interactions. Columns called baitID, preyID, N, storing the bait fragment ID, prey fragment ID and readcount, respectively.
 #' @param fragments Data table containing fragment information. Columns called chrom, chromStart, chromEnd, ID, storing the chromosome, starting coordinate, ending coordinate and ID of a fragment, respectively.
 #' @param bins Number of bins to place the interactions into.
+#' @param min_dist Minimum distance interactions must span to be included in the analysis. Distance is defined between fragment midpoints.
 #' @param log_file Path to a log file.
 #' @return List containing the binned interactions ($interactions) and an overview of bins ($bins).
 #'
@@ -54,12 +55,15 @@ note = function(logfile=NA,logtime=T,...){
 #'
 #' @export
 
-bin_interactions = function(interactions, fragments, bins=5, min_dist=0, log_file=NA){
+bin_interactions = function(interactions, fragments, bins=5, min_dist=2.5e3, log_file=NA){
   D = interactions; rm(interactions)
   L = log_file; rm(log_file)
 
   if(ncol(D)<3 | all.equal(colnames(D)[1:3],c("baitID","preyID","N"))!=TRUE){note(L,T,"First three columns of interactions file should be named: baitID preyID N"); stop()}
-  if(ncol(fragments)<4 | all.equal(colnames(fragments)[1:4],c("chrom","chromStart","chromEnd","ID"))!=TRUE){note(L,T,"First four columns of fragments file should be named: chrom chromStart chromEnd ID"); stop()}
+  if(ncol(fragments)<4 | !(all(colnames(fragments)[1:4]==c("chrom","chromStart","chromEnd","ID")) | all(colnames(fragments)[1:4]==c("chr","start","end","ID"))) ){ #So we get a pass after setnames() from the first call, and can continue to use e.g. b.chr shorthand.
+        note(L,T,"First four columns of fragments file should be named: chrom chromStart chromEnd ID"); stop()
+  }
+
   setnames(fragments,c("chr","start","end","ID"))
 
   note(L,T,"Calculating fragment characteristics...")
@@ -75,14 +79,19 @@ bin_interactions = function(interactions, fragments, bins=5, min_dist=0, log_fil
   #Ditch all trans here?
 
   note(L,T,"Calculating interaction distances...")
-  D[b.chr==p.chr,dist:=(p.mid-b.mid)] #no clue, but this changes the number of rows somehow, with is for the whole dataset apparently, not the subset
+  D[b.chr==p.chr,dist:=(p.mid-b.mid)] #this changes the number of rows somehow, with is for the whole dataset apparently, not the subset
   #D[b.chr==p.chr,dist:=(D[b.chr==p.chr,p.mid]-D[b.chr==p.chr,b.mid])]
 
   note(L,T,"Calculating total trans-chromosomal read counts for each bait...")
   trans = D[,.(b.trans=sum((b.chr!=p.chr)*N)),by=.(baitID, b.chr)]
 
   note(L,T,"Modelling those as a function of bait chromosome...")
-  trans_model = gamlss(b.trans ~ as.factor(b.chr), data=trans, family=gamlss.dist::NBI)
+  if(length(unique(D$b.chr))==1){
+    note(L,T,"All baits actually appear to be on the same chromosome, reverting to an intercept only model...")
+    trans_model = gamlss(b.trans ~ 1, data=trans, family=gamlss.dist::NBI)
+  }else{
+    trans_model = gamlss(b.trans ~ as.factor(b.chr), data=trans, family=gamlss.dist::NBI)
+  }
   trans[,b.trans_res:=trans_model$residuals]
   D = merge(D,trans[,.(baitID, b.trans, b.trans_res)],by="baitID",all.x=TRUE)
 
@@ -105,6 +114,7 @@ bin_interactions = function(interactions, fragments, bins=5, min_dist=0, log_fil
 #' @param interactions_file Path to (tsv or csv) file containing putative interactions. Its first line must state the columns names: baitID, preyID, N. Subsequent lines report one putative interaction each: a bait fragment ID, prey fragment ID and readcount.
 #' @param fragments_file Path to (bed) file containing fragment information. Its first line must state the column names: chrom, chromStart, chromEnd, ID. Each subsequent line reports the chromosome, starting coordinate, ending coordinate and ID of a fragment.
 #' @param output_dir Directory where the generated bins will be stored. Will be created if it does not exist.
+#' @param min_dist Minimum distance interactions must span to be included in the analysis. Distance is defined between fragment midpoints.
 #' @param bins Number of bins to place the interactions into.
 #' @return List containing the output directory and an overview of bins.
 #'
@@ -120,7 +130,7 @@ bin_interactions = function(interactions, fragments, bins=5, min_dist=0, log_fil
 #' }
 #' @export
 
-bin_interactions_fs  = function(interactions_file, fragments_file, output_dir, min_dist=0, bins=5){
+bin_interactions_fs  = function(interactions_file, fragments_file, output_dir, min_dist=2.5e3, bins=5){
   L = paste0(output_dir,"/log_bins.txt")
   if(!dir.exists(output_dir)){dir.create(output_dir,recursive=TRUE)}
   write("BINNING\n",file=L,append=FALSE,sep="")
@@ -791,3 +801,11 @@ interpret_peaky_fs = function(rjmcmclist, index, baits_dir, output_dir, omega_po
 ######################################################
 ### INTERPRET RJMCMC.end
 ######################################################
+
+
+
+
+
+
+
+
