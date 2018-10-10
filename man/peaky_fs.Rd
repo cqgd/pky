@@ -24,7 +24,7 @@ peaky_fs(baitlist, index, output_dir, omega_power, iterations = 1e+06,
 List containing the model output directory and the models themselves.
 
 Details.
-The steepness of the function to be fitted to putative peaks is determined by \eqn{\omega} according to \eqn{\beta \exp{- \abs{\omega * d}}}, where \beta represents peak height and \eqn{d} the distance from the center of the peak in bp.
+The steepness of the function to be fitted to putative peaks is determined by \eqn{\omega} according to \eqn{\beta} exp(-\eqn{|\omega * d|}), where \eqn{\beta} represents peak height and \eqn{d} the distance from the center of the peak in bp.
 }
 \description{
 Fits additive models of peaks of varying strengths in various locations to the adjusted readcounts via RJMCMC, and stores these models on disk.

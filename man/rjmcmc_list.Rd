@@ -10,7 +10,7 @@ rjmcmc_list(rjmcmc_dir, filename = NULL)
 \item{Path}{to a folder containing the results produced by peaky_fs()}
 }
 \value{
-List containing the path to a report of all results found ($filename), and the paths to the results themselves ($rjmcmc_paths.
+List containing the path to a report of all results found ($filename), and the paths to the results themselves ($rjmcmc_paths).
 }
 \description{
 Reports and lists files that contain peaky models in preparation for their interpretation with interpret_peaky_fs()

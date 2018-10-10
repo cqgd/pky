@@ -4,7 +4,8 @@
 \alias{bin_interactions_fs}
 \title{Wrapper for bin_interactions() that interacts with the filesystem}
 \usage{
-bin_interactions_fs(interactions_file, fragments_file, output_dir, bins = 5)
+bin_interactions_fs(interactions_file, fragments_file, output_dir,
+  min_dist = 2500, max_dist = Inf, bins = 5)
 }
 \arguments{
 \item{interactions_file}{Path to (tsv or csv) file containing putative interactions. Its first line must state the columns names: baitID, preyID, N. Subsequent lines report one putative interaction each: a bait fragment ID, prey fragment ID and readcount.}
@@ -12,6 +13,10 @@ bin_interactions_fs(interactions_file, fragments_file, output_dir, bins = 5)
 \item{fragments_file}{Path to (bed) file containing fragment information. Its first line must state the column names: chrom, chromStart, chromEnd, ID. Each subsequent line reports the chromosome, starting coordinate, ending coordinate and ID of a fragment.}
 
 \item{output_dir}{Directory where the generated bins will be stored. Will be created if it does not exist.}
+
+\item{min_dist}{Minimum distance interactions must span to be included in the analysis. Distance is defined between fragment midpoints.}
+
+\item{max_dist}{Maximum distance interactions can span to be included in the analysis. Distance is defined between fragment midpoints.}
 
 \item{bins}{Number of bins to place the interactions into.}
 }

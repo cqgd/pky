@@ -4,7 +4,8 @@
 \alias{bin_interactions}
 \title{Bins putative interactions by distance}
 \usage{
-bin_interactions(interactions, fragments, bins = 5, log_file = NA)
+bin_interactions(interactions, fragments, bins = 5, min_dist = 2500,
+  max_dist = Inf, log_file = NA)
 }
 \arguments{
 \item{interactions}{Data table containing putative interactions. Columns called baitID, preyID, N, storing the bait fragment ID, prey fragment ID and readcount, respectively.}
@@ -12,6 +13,10 @@ bin_interactions(interactions, fragments, bins = 5, log_file = NA)
 \item{fragments}{Data table containing fragment information. Columns called chrom, chromStart, chromEnd, ID, storing the chromosome, starting coordinate, ending coordinate and ID of a fragment, respectively.}
 
 \item{bins}{Number of bins to place the interactions into.}
+
+\item{min_dist}{Minimum distance interactions must span to be included in the analysis. Distance is defined between fragment midpoints.}
+
+\item{max_dist}{Maximum distance interactions can span to be included in the analysis. Distance is defined between fragment midpoints.}
 
 \item{log_file}{Path to a log file.}
 }
