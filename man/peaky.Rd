@@ -2,41 +2,42 @@
 % Please edit documentation in R/peaky.R
 \name{peaky}
 \alias{peaky}
-\title{Regroups putative interactions by bait}
+\title{Obtains peak locations and heights based on adjusted readcounts}
 \usage{
-peaky(baitlist, index, output_dir, omega_power, min_interactions = 20,
-  log_file = TRUE, iterations = 1e+06)
+peaky(bait, omega_power, iterations = 1e+06, min_interactions = 20,
+  log_file = NA)
 }
 \arguments{
-\item{baitlist}{Path to the list of baits to be processed.}
-
-\item{index}{Which bait on the list to process, with 1 corresponding to the first one on the list.}
-
-\item{output_dir}{Directory where all RJMCMC results will be stored. Will be created if it does not exist.}
+\item{bait}{Data table containing the putative interactions of a bait, having the columns 'baitID', 'dist', and 'residual'. These report the bait ID, its distance to putative preys, and the adjusted readcounts for its interactions with them, respectively.}
 
 \item{omega_power}{Expected decay of adjusted read counts around a truly interacting prey. See details.}
 
-\item{min_interactions}{Whether adjusted readcounts are to be plotted aganst distance and stored for each bait.}
+\item{iterations}{Number of models to parametrize. Greated numbers should lead to increased reproducibility.}
 
-\item{log_file}{Whether or not a log-file is required.}
-
-\item{min_interactions}{Minimum requirement for the number of prey fragments (and thus counts) associated with a bait, baits with fewer are skipped.}
+\item{log_file}{Path to a log file.}
 }
 \value{
 The output directory.
 
 Details.
-The steepness of the function to be fitted to putative peaks, \eqn{\beta \exp{- \abs{\omega * d}}}.
+The steepnesss of the function to be fitted to putative peaks is determined by \eqn{\omega} according to \eqn{\beta} exp(-\eqn{|\omega * d|}), where \beta represents peak height and \eqn{d} the distance from the center of the peak in bp.
 }
 \description{
-Regroups putative interactions by bait, rather than by distance, to prepare them for RJMCMC processing.
+Fits additive models of peaks of varying strengths in various locations to the adjusted readcounts via RJMCMC, and stores these models on disk.
 }
 \examples{
-base = "/local/data/public/hic/demo"
+base = system.file("extdata",package="peaky")
 interactions_file = paste0(base,"/counts.tsv")
-bins_dir = paste0(base,"/bins")
 fragments_file = paste0(base,"/fragments.bed")
+interactions = data.table::fread(interactions_file)
+fragments = data.table::fread(fragments_file)
 
-\dontrun{bin_interactions(interactions_file, fragments_file, output_dir=bins_dir)}
+BI = bin_interactions(interactions, fragments, bins=5)
+models = by(BI$interactions, BI$interactions$dist.bin, model_bin, subsample_size=1000)
+residuals = lapply(models, "[[", "residuals")
+bins = split(BI$interactions, BI$interactions$dist.bin)
 
+BTS = split_baits(bins, residuals)
+
+peaky(BTS[baitID==618421], omega_power=4.7, iterations=10e3)
 }
