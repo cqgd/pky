@@ -2,31 +2,43 @@
 % Please edit documentation in R/peaky.R
 \name{interpret_peaky}
 \alias{interpret_peaky}
-\title{Interprets RJMCMC results}
+\title{Interprets models fitted with peaky}
 \usage{
-interpret_peaky(rjmcmclist, index, baits_dir, output_dir, omega_power)
+interpret_peaky(bait, peaks, omega_power, log_file = NA)
 }
 \arguments{
-\item{rjmcmclist}{Path to the list of RJMCMC results to be interpreted.}
+\item{bait}{Data table containing the putative interactions of a bait, having the columns 'baitID', 'dist', and 'residual'. These report the bait ID, its distance to putative preys, and the adjusted readcounts for its interactions with them, respectively.}
 
-\item{index}{Which RJMCMC result on the list to process, with 1 corresponding to the first one on the list.}
+\item{peaks}{The models fitted by peaky.}
 
-\item{output_dir}{Directory where the merged RJMCMC results and bait information will be stored, one file per bait. Will be created if it does not exist.}
-
-\item{omega_power}{The same value as used when running peaky, i.e. the expected decay of adjusted read counts around a truly interacting prey.}
+\item{omega_power}{The same value as used when running peaky, i.e. the expected decay of adjusted read counts around a truly interacting prey. See details.}
 }
 \value{
-The output directory.
+A data table containing bait-associated information, posterior probabilities of contact and other statistics.
+
+Details.
+The steepness of the function to be fitted to putative peaks is determined by \eqn{\omega} according to \eqn{\beta \exp{- \abs{\omega * d}}}, where \eqn{\beta} represents peak height and \eqn{d} the distance from the center of the peak in bp.
 }
 \description{
 Extracts the marginal posterior probabilities of contact and other relevant statistics from the RJMCMC results and merges these with bait-associated information.
 }
 \examples{
-base = "/local/data/public/hic/demo"
+base = system.file("extdata",package="peaky")
 interactions_file = paste0(base,"/counts.tsv")
-bins_dir = paste0(base,"/bins")
 fragments_file = paste0(base,"/fragments.bed")
+interactions = data.table::fread(interactions_file)
+fragments = data.table::fread(fragments_file)
 
-\dontrun{bin_interactions(interactions_file, fragments_file, output_dir=bins_dir)}
+BI = bin_interactions(interactions, fragments, bins=5)
+models = by(BI$interactions, BI$interactions$dist.bin, model_bin, subsample_size=1000)
+residuals = lapply(models, "[[", "residuals")
+bins = split(BI$interactions, BI$interactions$dist.bin)
 
+BTS = split_baits(bins, residuals)
+
+relevant_bait = BTS[baitID==618421]
+omega_power=4.7
+PKS = peaky(relevant_bait, omega_power, iterations=1e6)
+
+interpret_peaky(relevant_bait, PKS, omega_power)
 }
