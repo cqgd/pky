@@ -163,6 +163,27 @@ bin_interactions_fs  = function(interactions_file, fragments_file, output_dir, m
 ### BIN.end
 ######################################################
 
+##' copy bait covariates to prey fragments
+##' 
+##' To allow modelling of read counts between fragments baited at both ends, it can be useful to copuybait-to-bait copy some covariate information about each bait to the "prey" fragment (which has also been baited).
+##'
+##' @title copy_bait_covar
+##' @param d data.table containing bait and prey fragments and their covariates
+##' @param baitcovar name of bait covar to be copied, default b.trans_res
+##' @param preycovar name of prey covar that will be created. Default sub("^b\\.","p.", baitcovar)
+##' @return data.table with new covariate.  Rows may be differently ordered.
+##' @export
+##' @author Chris Wallace
+copy_bait_covar <- function(d,baitcovar="b.trans_res",preycovar=sub("^b.","p.",baitcovar)) {
+    if(!all(c("baitID","preyID",baitcovar) %in% names(d)))
+        stop("some of baitID, preyID, ",baitcovar," not found in d")
+    if(preycovar %in% names(d))
+        stop("preycovar already exists in d: ",preycovar)
+    tmp <- unique(d[,c("baitID",baitcovar),with=FALSE])
+    setnames(tmp,c("baitID",baitcovar),c("preyID",preycovar))
+    merge(d,tmp,by="preyID",all.x=TRUE)
+}
+    
 
 ######################################################
 ### FIT.start
@@ -176,6 +197,7 @@ bin_interactions_fs  = function(interactions_file, fragments_file, output_dir, m
 #' @param gamlss_cycles GAMLSS maximum number of cycles for convergence (see gamlss::gamlss.control).
 #' @param gamlss_crit GAMLSS convergence criterion (see gamlss::gamlss.control).
 #' @param log_file Path to a log file.
+#' @param formula_add additional part of model formula. Optional.  If you wish to add covariates A and B when modelling counts, use formula_add="A + B".  Particularly useful after copy_bait_covar, to add new prey covariates.
 #' @return List containing the fitted null model ($fit) and the adjusted readcounts ($residuals).
 #'
 #' @examples
@@ -198,7 +220,8 @@ bin_interactions_fs  = function(interactions_file, fragments_file, output_dir, m
 #'
 #' @export
 
-model_bin = function(bin, subsample_size=NA, gamlss_cycles=200, gamlss_crit=0.1, log_file=NA){
+model_bin = function(bin, subsample_size=NA, gamlss_cycles=200, gamlss_crit=0.1, log_file=NA,
+                     formula_add=NULL){
   gamlss.tr::gen.trun(0,family="NBI",type="left",name=".0tr") #THIS HAS TO BE IN THE GLOBAL ENVIRONMENT, CANNOT BE WITHIN THE FIT FUNCTION!
   NBI.0tr <<- gamlss.tr::trun(0,family="NBI",type="left",name=".0tr", local=FALSE) #Just local == FALSE is not enough to make it global. Just locals (which gen.trun generates in in peaky:::) somehow aren't enough although all of these are referenced explcitly with peaky::: below
 
@@ -215,7 +238,11 @@ model_bin = function(bin, subsample_size=NA, gamlss_cycles=200, gamlss_crit=0.1,
   note(L,T,"Fitting with a maximum of ",gamlss_cycles," iterations...")
   control = gamlss.control(c.crit=gamlss_crit, n.cyc=gamlss_cycles)
 
-  fit = gamlss(N ~ log(abs(dist)) + b.trans_res  + sqrt(b.length) + sqrt(p.length),
+  f <- "N ~ log(abs(dist)) + b.trans_res  + sqrt(b.length) + sqrt(p.length)"
+  if(!is.null(formula_add))
+      f <- paste(f,formula_add,sep=" + ")
+  fit = gamlss(as.formula(f),
+               #N ~ log(abs(dist)) + b.trans_res  + sqrt(b.length) + sqrt(p.length),
                data=bin[subset,], family=NBI.0tr, sigma.formula = ~log(abs(dist)), control=control)
 
   if(is.gamlss(fit)){
