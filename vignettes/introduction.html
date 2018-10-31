@@ -359,7 +359,7 @@ fit_omega =<span class="st"> </span><span class="kw">nls</span>(residual<span cl
 <p>At this point, Peaky is ready to determine where peaks, or direct contacts, occur in the signal for the bait above. It does so iteratively, by proposing different sets (i.e. different models) of hypothetical peaks, and settling more often on more likely sets (through reversible-jump Markov chain Monte Carlo estimation). The number of sets proposed is controlled by the iterations parameter of <code>peaky()</code>. It is recommended to increase the value until the results (e.g. MPPC, see below) are highly correlated between different runs of <code>peaky()</code> (note that its output is not deterministic). Raw models and their likelihoods are stored in PKS, but these do not have to be inspected manually (although this is possible, e.g. to remove burn-in models or to construct trace plots). Instead, summary statistics can be calculated with <code>interpret_peaky()</code>. For each fragment X, these are stored in the following columns:</p>
 <ul>
 <li><em>rjmcmc</em>: Proportion of sets featuring a peak at X</li>
-<li><em>rjmcmc_pos</em>: Porporion of sets featuring an upward peak at X
+<li><em>rjmcmc_pos</em>: Proportion of sets featuring an upward peak at X
 <ul>
 <li>referred to as the marginal posterior probability of contact (MPPC) in the main paper</li>
 </ul></li>
