@@ -5,7 +5,7 @@
 \title{Obtain readcounts adjusted for several forms of technical and biological background noise}
 \usage{
 model_bin(bin, subsample_size = NA, gamlss_cycles = 200,
-  gamlss_crit = 0.1, log_file = NA)
+  gamlss_crit = 0.1, formula_add = NA, log_file = NA)
 }
 \arguments{
 \item{bin}{Data table containing putative interactions in the same distance bin.}
@@ -15,6 +15,8 @@ model_bin(bin, subsample_size = NA, gamlss_cycles = 200,
 \item{gamlss_cycles}{GAMLSS maximum number of cycles for convergence (see gamlss::gamlss.control).}
 
 \item{gamlss_crit}{GAMLSS convergence criterion (see gamlss::gamlss.control).}
+
+\item{formula_add}{Additional part of model formula. Optional. To add covariates A and B when modelling counts, supply "A + B".}
 
 \item{log_file}{Path to a log file.}
 }

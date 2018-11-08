@@ -96,6 +96,9 @@ bin_interactions = function(interactions, fragments, bins=5, min_dist=2.5e3, max
   trans[,b.trans_res:=trans_model$residuals]
   D = merge(D,trans[,.(baitID, b.trans, b.trans_res)],by="baitID",all.x=TRUE)
 
+  note(L,T,"Adding trans-chromosomal interactivity covariate for preys that were also baited (0 for preys not baited)...")
+  D[,p.trans_res:=b.trans_res[match(preyID,baitID)]][is.na(p.trans_res), p.trans_res:=0]
+  
   note(L, T, "Excluding ", D[, sum(abs(dist) < min_dist, na.rm = TRUE)]," interactions that are too proximal (distance < ", min_dist, " bp)...")
   D = D[is.na(dist) | abs(dist) >= min_dist]
   
@@ -168,27 +171,6 @@ bin_interactions_fs  = function(interactions_file, fragments_file, output_dir, m
 ### BIN.end
 ######################################################
 
-##' copy bait covariates to prey fragments
-##' 
-##' To allow modelling of read counts between fragments baited at both ends, it can be useful to copuybait-to-bait copy some covariate information about each bait to the "prey" fragment (which has also been baited).
-##'
-##' @title copy_bait_covar
-##' @param d data.table containing bait and prey fragments and their covariates
-##' @param baitcovar name of bait covar to be copied, default b.trans_res
-##' @param preycovar name of prey covar that will be created. Default sub("^b\\.","p.", baitcovar)
-##' @return data.table with new covariate.  Rows may be differently ordered.
-##' @export
-##' @author Chris Wallace
-copy_bait_covar <- function(d,baitcovar="b.trans_res",preycovar=sub("^b.","p.",baitcovar)) {
-    if(!all(c("baitID","preyID",baitcovar) %in% names(d)))
-        stop("some of baitID, preyID, ",baitcovar," not found in d")
-    if(preycovar %in% names(d))
-        stop("preycovar already exists in d: ",preycovar)
-    tmp <- unique(d[,c("baitID",baitcovar),with=FALSE])
-    setnames(tmp,c("baitID",baitcovar),c("preyID",preycovar))
-    merge(d,tmp,by="preyID",all.x=TRUE)
-}
-    
 
 ######################################################
 ### FIT.start
@@ -201,8 +183,8 @@ copy_bait_covar <- function(d,baitcovar="b.trans_res",preycovar=sub("^b.","p.",b
 #' @param subsample_size Number of interactions based on which the null-model is parametrized. By default, all are used.
 #' @param gamlss_cycles GAMLSS maximum number of cycles for convergence (see gamlss::gamlss.control).
 #' @param gamlss_crit GAMLSS convergence criterion (see gamlss::gamlss.control).
+#' @param formula_add Additional part of model formula. Optional. To add covariates A and B when modelling counts, supply "A + B".
 #' @param log_file Path to a log file.
-#' @param formula_add additional part of model formula. Optional.  If you wish to add covariates A and B when modelling counts, use formula_add="A + B".  Particularly useful after copy_bait_covar, to add new prey covariates.
 #' @return List containing the fitted null model ($fit) and the adjusted readcounts ($residuals).
 #'
 #' @examples
@@ -225,8 +207,7 @@ copy_bait_covar <- function(d,baitcovar="b.trans_res",preycovar=sub("^b.","p.",b
 #'
 #' @export
 
-model_bin = function(bin, subsample_size=NA, gamlss_cycles=200, gamlss_crit=0.1, log_file=NA,
-                     formula_add=NULL){
+model_bin = function(bin, subsample_size=NA, gamlss_cycles=200, gamlss_crit=0.1, formula_add=NA, log_file=NA){
   gamlss.tr::gen.trun(0,family="NBI",type="left",name=".0tr") #THIS HAS TO BE IN THE GLOBAL ENVIRONMENT, CANNOT BE WITHIN THE FIT FUNCTION!
   NBI.0tr <<- gamlss.tr::trun(0,family="NBI",type="left",name=".0tr", local=FALSE) #Just local == FALSE is not enough to make it global. Just locals (which gen.trun generates in in peaky:::) somehow aren't enough although all of these are referenced explcitly with peaky::: below
 
@@ -243,12 +224,15 @@ model_bin = function(bin, subsample_size=NA, gamlss_cycles=200, gamlss_crit=0.1,
   note(L,T,"Fitting with a maximum of ",gamlss_cycles," iterations...")
   control = gamlss.control(c.crit=gamlss_crit, n.cyc=gamlss_cycles)
 
-  f <- "N ~ log(abs(dist)) + b.trans_res  + sqrt(b.length) + sqrt(p.length)"
-  if(!is.null(formula_add))
-      f <- paste(f,formula_add,sep=" + ")
-  fit = gamlss(as.formula(f),
-               #N ~ log(abs(dist)) + b.trans_res  + sqrt(b.length) + sqrt(p.length),
-               data=bin[subset,], family=NBI.0tr, sigma.formula = ~log(abs(dist)), control=control)
+  fit_formula <- "N ~ log(abs(dist)) + b.trans_res  + p.trans_res + sqrt(b.length) + sqrt(p.length)"
+  if(!is.na(formula_add)){ #null check also fine, this is just for consistency
+    fit_formula = paste(fit_formula,formula_add,sep=" + ")  
+  }
+  
+  note(L,F,"Using formula:\n",fit_formula)
+  
+  fit = gamlss(as.formula(fit_formula), data=bin[subset,], 
+               family=NBI.0tr, sigma.formula = ~log(abs(dist)), control=control)
 
   if(is.gamlss(fit)){
     note(L,T,"Converged: ",ifelse(fit$converged,"YES","NO"),"\nIterations: ",fit$iter,"\n\nCoefficients:")
@@ -275,6 +259,7 @@ model_bin = function(bin, subsample_size=NA, gamlss_cycles=200, gamlss_crit=0.1,
 #' @param subsample_size Number of interactions based on which the null-model is parametrized. By default, all are used.
 #' @param gamlss_cycles GAMLSS maximum number of cycles for convergence (see gamlss::gamlss.control).
 #' @param gamlss_crit GAMLSS convergence criterion (see gamlss::gamlss.control).
+#' @param formula_add Additional part of model formula. Optional. To add covariates A and B when modelling counts, supply "A + B".
 #' @return List containing the path to the output directory, the null model, and the adjusted read counts.
 #'
 #' @examples
@@ -292,7 +277,7 @@ model_bin = function(bin, subsample_size=NA, gamlss_cycles=200, gamlss_crit=0.1,
 #' }
 #' @export
 
-model_bin_fs = function(bins_dir,bin_index,output_dir,subsample_size=NA,gamlss_cycles=200,gamlss_crit=0.1){
+model_bin_fs = function(bins_dir,bin_index,output_dir,subsample_size=NA,gamlss_cycles=200,gamlss_crit=0.1,formula_add=NA){
   L = paste0(output_dir,"/log_fit_",bin_index,".txt")
   if(!dir.exists(output_dir)){dir.create(output_dir,recursive=TRUE)}
   write("FITTING\n",file=L,append=FALSE,sep="")
@@ -305,7 +290,7 @@ model_bin_fs = function(bins_dir,bin_index,output_dir,subsample_size=NA,gamlss_c
   note(L,F,"Loading bin from ",bin_path)
   bin = readRDS(bin_path)
 
-  BM = model_bin(bin, subsample_size=subsample_size, gamlss_cycles=gamlss_cycles, gamlss_crit=gamlss_crit, log_file=L)
+  BM = model_bin(bin, subsample_size=subsample_size, gamlss_cycles=gamlss_cycles, gamlss_crit=gamlss_crit, formula_add=formula_add, log_file=L)
 
   if(is.gamlss(BM$fit)){
     note(L,F,"Saving fit to ",output_path_fit,"...")

@@ -5,7 +5,7 @@
 \title{Wrapper for model_bin() that interacts with the filesystem}
 \usage{
 model_bin_fs(bins_dir, bin_index, output_dir, subsample_size = NA,
-  gamlss_cycles = 200, gamlss_crit = 0.1)
+  gamlss_cycles = 200, gamlss_crit = 0.1, formula_add = NA)
 }
 \arguments{
 \item{bins_dir}{Directory containing putative interactions that are binned by distance.}
@@ -19,6 +19,8 @@ model_bin_fs(bins_dir, bin_index, output_dir, subsample_size = NA,
 \item{gamlss_cycles}{GAMLSS maximum number of cycles for convergence (see gamlss::gamlss.control).}
 
 \item{gamlss_crit}{GAMLSS convergence criterion (see gamlss::gamlss.control).}
+
+\item{formula_add}{Additional part of model formula. Optional. To add covariates A and B when modelling counts, supply "A + B".}
 }
 \value{
 List containing the path to the output directory, the null model, and the adjusted read counts.
