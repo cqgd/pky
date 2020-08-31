@@ -17,13 +17,15 @@ interpret_peaky_fs(rjmcmclist, index, baits_dir, output_dir, omega_power)
 }
 \value{
 The output directory.
-
-Details.
-The steepness of the function to be fitted to putative peaks is determined by \eqn{\omega} according to \eqn{\beta \exp{- \abs{\omega * d}}}, where \eqn{\beta} represents peak height and \eqn{d} the distance from the center of the peak in bp.
 }
 \description{
 Extracts the marginal posterior probabilities of contact and other relevant statistics from the RJMCMC results and merges these with bait-associated information.
 }
+\section{Details}{
+
+The steepness of the function to be fitted to putative peaks is determined by \eqn{\omega} according to \eqn{\beta \exp{- \abs{\omega * d}}}, where \eqn{\beta} represents peak height and \eqn{d} the distance from the center of the peak in bp.
+}
+
 \examples{
 base = system.file("extdata",package="peaky")
 interactions_file = paste0(base,"/counts.tsv")

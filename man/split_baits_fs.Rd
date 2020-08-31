@@ -4,8 +4,7 @@
 \alias{split_baits_fs}
 \title{Wrapper for split_baits() that interacts with the filesystem}
 \usage{
-split_baits_fs(bins_dir, residuals_dir, indices, output_dir,
-  plots = TRUE)
+split_baits_fs(bins_dir, residuals_dir, indices, output_dir, plots = TRUE)
 }
 \arguments{
 \item{bins_dir}{Directory containing putative interactions that are binned by distance.}

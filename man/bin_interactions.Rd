@@ -4,8 +4,14 @@
 \alias{bin_interactions}
 \title{Bins putative interactions by distance}
 \usage{
-bin_interactions(interactions, fragments, bins = 5, min_dist = 2500,
-  max_dist = Inf, log_file = NA)
+bin_interactions(
+  interactions,
+  fragments,
+  bins = 5,
+  min_dist = 2500,
+  max_dist = Inf,
+  log_file = NA
+)
 }
 \arguments{
 \item{interactions}{Data table containing putative interactions. Columns called baitID, preyID, N, storing the bait fragment ID, prey fragment ID and readcount, respectively.}

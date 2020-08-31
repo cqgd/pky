@@ -4,8 +4,14 @@
 \alias{bin_interactions_fs}
 \title{Wrapper for bin_interactions() that interacts with the filesystem}
 \usage{
-bin_interactions_fs(interactions_file, fragments_file, output_dir,
-  min_dist = 2500, max_dist = Inf, bins = 5)
+bin_interactions_fs(
+  interactions_file,
+  fragments_file,
+  output_dir,
+  min_dist = 2500,
+  max_dist = Inf,
+  bins = 5
+)
 }
 \arguments{
 \item{interactions_file}{Path to (tsv or csv) file containing putative interactions. Its first line must state the columns names: baitID, preyID, N. Subsequent lines report one putative interaction each: a bait fragment ID, prey fragment ID and readcount.}

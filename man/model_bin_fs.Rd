@@ -4,8 +4,16 @@
 \alias{model_bin_fs}
 \title{Wrapper for model_bin() that interacts with the filesystem}
 \usage{
-model_bin_fs(bins_dir, bin_index, output_dir, subsample_size = NA,
-  gamlss_cycles = 200, gamlss_crit = 0.1, formula_add = NA)
+model_bin_fs(
+  bins_dir,
+  bin_index,
+  output_dir,
+  subsample_size = NA,
+  gamlss_cycles = 200,
+  gamlss_crit = 0.1,
+  formula_add = NA,
+  formula_replace = NA
+)
 }
 \arguments{
 \item{bins_dir}{Directory containing putative interactions that are binned by distance.}
@@ -20,7 +28,9 @@ model_bin_fs(bins_dir, bin_index, output_dir, subsample_size = NA,
 
 \item{gamlss_crit}{GAMLSS convergence criterion (see gamlss::gamlss.control).}
 
-\item{formula_add}{Additional part of model formula. Optional. To add covariates A and B when modelling counts, supply "A + B".}
+\item{formula_add}{Additional covariates for the default model formula. To add covariates A and B when modelling counts, supply "A + B".}
+
+\item{formula_replace}{Replaces the default model formula entirely. Suppled in the form "N ~ A + B". Takes precedence over formula_add.}
 }
 \value{
 List containing the path to the output directory, the null model, and the adjusted read counts.

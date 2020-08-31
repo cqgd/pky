@@ -15,8 +15,8 @@ if(exists("GO")){
 
 #######################################################
 
-#' @importFrom ggplot2 cut_number ggplot geom_hline geom_vline geom_point xlab ylab ggtitle aes ggsave
-#' @import data.table R2BGLiMS gamlss gamlss.tr gamlss.dist
+#' @importFrom cowplot plot_grid
+#' @import data.table R2BGLiMS gamlss gamlss.tr gamlss.dist ggplot2
 #Import for R2BGLiMS: Error in path.package("R2BGLiMS") : none of the packages are loaded
 
 note = function(logfile=NA,logtime=T,...){
@@ -183,7 +183,8 @@ bin_interactions_fs  = function(interactions_file, fragments_file, output_dir, m
 #' @param subsample_size Number of interactions based on which the null-model is parametrized. By default, all are used.
 #' @param gamlss_cycles GAMLSS maximum number of cycles for convergence (see gamlss::gamlss.control).
 #' @param gamlss_crit GAMLSS convergence criterion (see gamlss::gamlss.control).
-#' @param formula_add Additional part of model formula. Optional. To add covariates A and B when modelling counts, supply "A + B".
+#' @param formula_add Additional covariates for the default model formula. To add covariates A and B when modelling counts, supply "A + B".
+#' @param formula_replace Replaces the default model formula entirely. Suppled in the form "N ~ A + B". Takes precedence over formula_add.
 #' @param log_file Path to a log file.
 #' @return List containing the fitted null model ($fit) and the adjusted readcounts ($residuals).
 #'
@@ -207,7 +208,7 @@ bin_interactions_fs  = function(interactions_file, fragments_file, output_dir, m
 #'
 #' @export
 
-model_bin = function(bin, subsample_size=NA, gamlss_cycles=200, gamlss_crit=0.1, formula_add=NA, log_file=NA){
+model_bin = function(bin, subsample_size=NA, gamlss_cycles=200, gamlss_crit=0.1, formula_add=NA, formula_replace=NA, log_file=NA){
   gamlss.tr::gen.trun(0,family="NBI",type="left",name=".0tr") #THIS HAS TO BE IN THE GLOBAL ENVIRONMENT, CANNOT BE WITHIN THE FIT FUNCTION!
   NBI.0tr <<- gamlss.tr::trun(0,family="NBI",type="left",name=".0tr", local=FALSE) #Just local == FALSE is not enough to make it global. Just locals (which gen.trun generates in in peaky:::) somehow aren't enough although all of these are referenced explcitly with peaky::: below
 
@@ -225,7 +226,9 @@ model_bin = function(bin, subsample_size=NA, gamlss_cycles=200, gamlss_crit=0.1,
   control = gamlss.control(c.crit=gamlss_crit, n.cyc=gamlss_cycles)
 
   fit_formula <- "N ~ log(abs(dist)) + b.trans_res  + p.trans_res + sqrt(b.length) + sqrt(p.length)"
-  if(!is.na(formula_add)){ #null check also fine, this is just for consistency
+  if(!is.na(formula_replace)){
+    fit_formula = formula_replace
+  }else if(!is.na(formula_add)){ #null check also fine, this is just for consistency
     fit_formula = paste(fit_formula,formula_add,sep=" + ")  
   }
   
@@ -259,7 +262,8 @@ model_bin = function(bin, subsample_size=NA, gamlss_cycles=200, gamlss_crit=0.1,
 #' @param subsample_size Number of interactions based on which the null-model is parametrized. By default, all are used.
 #' @param gamlss_cycles GAMLSS maximum number of cycles for convergence (see gamlss::gamlss.control).
 #' @param gamlss_crit GAMLSS convergence criterion (see gamlss::gamlss.control).
-#' @param formula_add Additional part of model formula. Optional. To add covariates A and B when modelling counts, supply "A + B".
+#' @param formula_add Additional covariates for the default model formula. To add covariates A and B when modelling counts, supply "A + B".
+#' @param formula_replace Replaces the default model formula entirely. Suppled in the form "N ~ A + B". Takes precedence over formula_add.
 #' @return List containing the path to the output directory, the null model, and the adjusted read counts.
 #'
 #' @examples
@@ -277,7 +281,7 @@ model_bin = function(bin, subsample_size=NA, gamlss_cycles=200, gamlss_crit=0.1,
 #' }
 #' @export
 
-model_bin_fs = function(bins_dir,bin_index,output_dir,subsample_size=NA,gamlss_cycles=200,gamlss_crit=0.1,formula_add=NA){
+model_bin_fs = function(bins_dir,bin_index,output_dir,subsample_size=NA,gamlss_cycles=200,gamlss_crit=0.1,formula_add=NA,formula_replace=NA){
   L = paste0(output_dir,"/log_fit_",bin_index,".txt")
   if(!dir.exists(output_dir)){dir.create(output_dir,recursive=TRUE)}
   write("FITTING\n",file=L,append=FALSE,sep="")
@@ -290,7 +294,7 @@ model_bin_fs = function(bins_dir,bin_index,output_dir,subsample_size=NA,gamlss_c
   note(L,F,"Loading bin from ",bin_path)
   bin = readRDS(bin_path)
 
-  BM = model_bin(bin, subsample_size=subsample_size, gamlss_cycles=gamlss_cycles, gamlss_crit=gamlss_crit, formula_add=formula_add, log_file=L)
+  BM = model_bin(bin, subsample_size=subsample_size, gamlss_cycles=gamlss_cycles, gamlss_crit=gamlss_crit, formula_add=formula_add, formula_replace=formula_replace, log_file=L)
 
   if(is.gamlss(BM$fit)){
     note(L,F,"Saving fit to ",output_path_fit,"...")
@@ -457,7 +461,7 @@ split_baits_fs = function(bins_dir, residuals_dir, indices, output_dir, plots=TR
 #' @param log_file Path to a log file.
 #' @return The output directory.
 #'
-#' Details.
+#' @section Details:
 #' The steepness of the function to be fitted to putative peaks is determined by \eqn{\omega} according to \eqn{\beta} exp(-\eqn{|\omega * d|}), where \eqn{\beta} represents peak height and \eqn{d} the distance from the center of the peak in bp.
 #'
 #' @examples
@@ -474,7 +478,7 @@ split_baits_fs = function(bins_dir, residuals_dir, indices, output_dir, plots=TR
 #'
 #' BTS = split_baits(bins, residuals)
 #'
-#' peaky(BTS[baitID==618421], omega_power=4.7, iterations=10e3)
+#' peaky(BTS[baitID==618421], omega_power=-4.7, iterations=10e3)
 #' @export
 
 peaky = function(bait, omega_power, iterations=1e6, min_interactions=20, log_file=NA){
@@ -492,7 +496,7 @@ peaky = function(bait, omega_power, iterations=1e6, min_interactions=20, log_fil
   signal = P$residual
   baitID = unique(P$baitID)
 
-  note(L,T,"Constructing distance matrix with omega=10^-", omega_power,"...")
+  note(L,T,"Constructing distance matrix with omega=10^", omega_power,"...")
 
   omega = 10^omega_power
 
@@ -545,7 +549,7 @@ peaky = function(bait, omega_power, iterations=1e6, min_interactions=20, log_fil
 #' @param iterations Number of models to parametrize. Greated numbers should lead to increased reproducibility.
 #' @return List containing the model output directory and the models themselves.
 #'
-#' Details.
+#' @section Details:
 #' The steepness of the function to be fitted to putative peaks is determined by \eqn{\omega} according to \eqn{\beta} exp(-\eqn{|\omega * d|}), where \eqn{\beta} represents peak height and \eqn{d} the distance from the center of the peak in bp.
 #'
 #' @examples
@@ -568,7 +572,7 @@ peaky = function(bait, omega_power, iterations=1e6, min_interactions=20, log_fil
 #'
 #' baitlist = paste0(baits_dir,"/baitlist.txt")
 #' rjmcmc_dir = paste0(base,"/rjmcmc")
-#' omega_power = 4.7
+#' omega_power = -4.7
 #' \donttest{
 #' for(i in 1:3){
 #'  peaky_fs(baitlist,i,output_dir=rjmcmc_dir,omega_power=omega_power)
@@ -649,7 +653,7 @@ rjmcmc_list = function(rjmcmc_dir, filename=NULL){
 #' @param omega_power The same value as used when running peaky, i.e. the expected decay of adjusted read counts around a truly interacting prey. See details.
 #' @return A data table containing bait-associated information, posterior probabilities of contact and other statistics.
 #'
-#' Details.
+#' @section Details:
 #' The steepness of the function to be fitted to putative peaks is determined by \eqn{\omega} according to \eqn{\beta \exp{- \abs{\omega * d}}}, where \eqn{\beta} represents peak height and \eqn{d} the distance from the center of the peak in bp.
 #
 #' @examples
@@ -752,7 +756,7 @@ interpret_peaky = function(bait, peaks, omega_power, log_file=NA){
 #' @param omega_power The same value as used when running peaky, i.e. the expected decay of adjusted read counts around a truly interacting prey. See details.
 #' @return The output directory.
 #'
-#' Details.
+#' @section Details:
 #' The steepness of the function to be fitted to putative peaks is determined by \eqn{\omega} according to \eqn{\beta \exp{- \abs{\omega * d}}}, where \eqn{\beta} represents peak height and \eqn{d} the distance from the center of the peak in bp.
 #
 #' @examples
@@ -814,14 +818,394 @@ interpret_peaky_fs = function(rjmcmclist, index, baits_dir, output_dir, omega_po
   return(list(output_path=output_path,output=D))
 }
 
-
 ######################################################
 ### INTERPRET RJMCMC.end
 ######################################################
 
 
+######################################################
+### PEAKY PREPARE FROM CHICAGO.start
+######################################################
+
+#' Wrapper that prepares CHiCAGO output for Peaky analysis
+#'
+#' Reads a CHiCAGO .rds object (example at https://osf.io/eaqz6/) and prepares it for post-hoc analysis with Peaky.
+#' This setup fine-maps chromatin interactions based on CHiCAGO scores, instead of based on the adjusted readcounts that Peaky's own model (see \code{\link{interpret_peaky_fs}} for a full pipeline) would generate from raw Capture Hi-C or Capture-C counts. 
+#' The next step of this pipeline is to process the generated files with \code{\link{peaky_run}}.
+#'
+#' @param chicago_rds_path Path to the .rds file produced by CHiCAGO.
+#' @param peaky_output_dir Directory to store Peaky's intermediate files and results in. Will be created if it doesn't exist.
+#' @param chicago_max_dist Maximum distance putative interactions may span if they are to be extracted and analyzed.
+#' @param chicago_bait_subset Path to a file specifying baitIDs to extract from the CHiCAGO object. This file just needs one column name: baitID. By default, all bais will be extracted.
+#' @param subsample_size Number of putative interactions to build a null model from that relates CHiCAGO scores to count data. Used for all distance bins. See also \code{\link{model_bin_fs}}.
+#' @return List containing the output directory where baits are stored and their individual paths.
+#'
+#' @section Details:
+#' This function exports CHiCAGO-made bins (analogous to \code{\link{bin_interactions_fs}} in Peaky's standard pipeline), uses a modified version of \code{\link{model_bin_fs}} where only CHiCAGO scores are used, and ultimately calls \code{\link{split_baits_fs}}.
+#
+#' @examples
+#' base = system.file("extdata",package="peaky")
+#' chicago_rds_path = paste0(base,"/chicago_output.rds")
+#' peaky_output_dir = paste0(base,"/peaky_from_chicago")
+#' \donttest{
+#' peaky_prepare_from_chicago(chicago_rds_path, peaky_output_dir, subsample_size=NA) 
+#' #Big dataset? Consider subsample_size=10e3 for speed.
+#' 
+#' for(i in 1:3){ peaky_run(peaky_output_dir,i) }
+#' #Tip: run this in parallel on a cluster by scheduling an array job and passing its elements to i.
+#' 
+#' peaky_wrapup(peaky_output_dir)
+#' }
+#' @export
+
+peaky_prepare_from_chicago = function(chicago_rds_path,peaky_output_dir,chicago_max_dist=1e6,chicago_bait_subset=NA,subsample_size=10e3){
+  base = peaky_output_dir
+  if (!dir.exists(base)) {
+    dir.create(base, recursive = TRUE)
+  }
+  bins_dir = paste0(base,"/bins")
+  fits_dir = paste0(base,"/fits")
+  baits_dir = paste0(base,"/baits")
+  
+  L = paste0(base, "/log_peaky_baits_from_chicago.txt")
+  write("CHiCAGO TO PEAKY\n", file = L, append = FALSE, sep = "")
+  note(L, T, "Preparing to generate bait files for Peaky analysis from CHiCAGO data...")
+  
+  note(L, T, "Reading CHiCAGO .rds results from: ",chicago_rds_path)
+  D = readRDS(chicago_rds_path)
+  D@x = data.table(D@x)
+  
+  if(!is.na(chicago_bait_subset)){
+    note(L, T, "Reading bait IDs to extract from: ",chicago_bait_subset)
+    E = fread(chicago_bait_subset)
+    baits_to_extract = unique(E$baitID)
+    note(L,T,"Found ",length(baits_to_extract),"unique baits to extract, based on the file's baitID column.")
+  }else{
+    baits_to_extract = unique(D@x[,baitID])
+    note(L, T, "Preparing to extract all ",length(baits_to_extract)," baits from the .rds.")
+  }
+  
+  note(L,T,"Extracting all cis-chromosomal putative interactions spanning up to ",chicago_max_dist," bp for these baits.")
+  
+  D = D@x[abs(distSign)<=chicago_max_dist & baitID%in%baits_to_extract]
+  note(L,T,nrow(D)," putative interactions remain.")
+  
+  setnames(D,old=c("otherEndID","distSign"),new=c("preyID","dist"))
+  D[,chicago_mu:=Tmean + Bmean]
+  
+  ordered_bins = unique(D$distbin[order(abs(D$dist))])
+  note(L,T,"These exist in ",length(ordered_bins)," distance bins, as defined by CHiCAGO.")
+  D[,dist.bin:=factor(match(distbin, ordered_bins),levels=1:length(ordered_bins))]
+  
+  note(L, T, "Saving binned interactions:")
+  save_bin = function(Dbin, output_dir) {
+    if (!dir.exists(output_dir)) {
+      dir.create(output_dir, recursive = TRUE)
+    }
+    filename = paste0(output_dir, "/bin_", as.character(Dbin$dist.bin)[1], 
+                      ".rds")
+    note(NA, F, filename)
+    saveRDS(Dbin, file = filename)
+  }
+  by(D, D$dist.bin, save_bin, output_dir = bins_dir)
+  
+  bin_indices = 1:length(ordered_bins)
+  
+  note(L, T, "Creating models for all ",length(ordered_bins)," bins:")
+  for(bin_index in bin_indices){
+    note(L, T, "Modelling distance bin ",bin_index,".")
+    model_bin_fs(bins_dir,bin_index,output_dir=fits_dir,subsample_size=subsample_size,formula_replace="N ~ chicago_mu")
+  }
+  
+  split_baits_fs(bins_dir,residuals_dir = fits_dir, indices=bin_indices, output_dir = baits_dir, plots=FALSE)
+}
+
+######################################################
+### PEAKY PREPARE FROM CHICAGO.end
+######################################################
 
 
+######################################################
+### PEAKY RUN.start
+######################################################
+
+#' Wrapper that fine-maps a bait's putative interactions
+#' 
+#' Run Peaky's core fine-mapping algorithm for a specified bait. This is the most computationally expensive step in Peaky's pipeline, costing many seconds to minutes per bait, and running it in parallel is recommended. 
+#' Fits additive models of peaks of varying strengths in various locations to the adjusted readcounts via RJMCMC, interprets these, and stores results on disk.
+#' The next step of this pipeline is to combine results for all baits into a table with \code{\link{peaky_wrapup}}.
+#'
+#' @param peaky_output_dir Directory that Peaky's intermediate files and results are stored in. Should have been created by \code{\link{split_baits_fs}} or \code{\link{peaky_prepare_from_chicago}}.
+#' @param index Which bait to process, with 1 corresponding to the first one on the list in peaky_output_dir/baits/baitlist.txt. Not baitID. (Tip: to parallelize execution, use an array job's element ID, provided by your compute cluster's scheduler, here.) 
+#' @param omega_power Expected decay of adjusted read counts around a truly interacting prey. See \code{\link{peaky_fs}} for details and the vignette for estimation.
+#' @param subsample_size Number of RJMCMC models to parametrize. Greated numbers should lead to increased reproducibility.
+#' @param min_interactions 	Minimum requirement for the number of prey fragments (and thus counts) associated with a bait, baits with fewer are skipped.
+#' @return List containing the output directory path and results table for the analyzed bait.
+#'
+#' @section Details:
+#' This function runs \code{\link{peaky_fs}} and then \code{\link{interpret_peaky_fs}}. For more control, these functions can be used individually.
+#'  
+#' @examples
+#' base = system.file("extdata",package="peaky")
+#' chicago_rds_path = paste0(base,"/chicago_output.rds")
+#' peaky_output_dir = paste0(base,"/peaky_from_chicago")
+#' \donttest{
+#' peaky_prepare_from_chicago(chicago_rds_path, peaky_output_dir, subsample_size=NA) 
+#' #Big dataset? Consider subsample_size=10e3 for speed.
+#' 
+#' for(i in 1:3){ peaky_run(peaky_output_dir,i) }
+#' #Tip: run this in parallel on a cluster by scheduling an array job and passing its elements to i.
+#' 
+#' peaky_wrapup(peaky_output_dir)
+#' }
+#' @export
+
+peaky_run = function (peaky_output_dir, index, omega_power=-4, iterations = 1e+06, min_interactions = 20){
+  base = peaky_output_dir
+  baits_dir = paste0(base,"/baits")
+  rjmcmc_dir = paste0(base,"/rjmcmc")
+  baits_rjmcmc_dir = paste0(base,"/baits_rjmcmc")
+  baitlist = paste0(base,"/baits/baitlist.txt")
+  
+  bait_path = scan(file = baitlist, what = "character", skip = index - 1, nline = 1, sep = "\n")
+  P = readRDS(file = bait_path)
+  baitID = unique(P$baitID)
+  L = paste0(rjmcmc_dir, "/log_rjmcmc_", baitID, ".txt")
+  if (!dir.exists(rjmcmc_dir)) {
+    dir.create(rjmcmc_dir, recursive = TRUE)
+  }
+  write("PEAKY\n", file = L, append = FALSE, sep = "")
+  note(L, T, "Loaded bait ", baitID, " from path: ", bait_path, 
+       "...")
+  PKY = peaky(bait = P, omega_power = omega_power, iterations = iterations, 
+              min_interactions = min_interactions, log_file = L)
+  results_path = paste0(rjmcmc_dir, "/rjmcmc_", baitID, ".rds")
+  note(L, T, "Saving RJMCMC results to ", results_path)
+  saveRDS(PKY, file = results_path)
+  note(L, T, "Done with RJMCMC, starting to interpret the results...")
+  
+  rjmcmc_path = results_path
+  path_split = strsplit(rjmcmc_path, "_")[[1]]
+  id = as.numeric(gsub(".rds", "", path_split[length(path_split)]))
+  bait_path = paste0(baits_dir, "/bait_", id, ".rds")
+  L = paste0(baits_rjmcmc_dir, "/log_baits_rjmcmc_", id, ".txt")
+  if (!dir.exists(baits_rjmcmc_dir)) {
+    dir.create(baits_rjmcmc_dir, recursive = TRUE)
+  }
+  write("INTERPRETING RJMCMC RESULTS\n", file = L, append = FALSE, 
+        sep = "")
+  note(L, F, "Loading RJMCMC result and bait:\n", rjmcmc_path, 
+       "\n", bait_path)
+  rjmcmc = readRDS(rjmcmc_path)
+  D = readRDS(bait_path)
+  D = interpret_peaky(bait = D, peaks = rjmcmc, omega_power = omega_power, log_file = L)
+  output_path = paste0(baits_rjmcmc_dir, "/bait_rjmcmc_", id, ".rds")
+  note(L, T, "Saving the bait with its RJMCMC results to", output_path)
+  saveRDS(D, file = output_path)
+  return(list(output_path = output_path, output = D))
+}
+
+
+######################################################
+### PEAKY RUN.end
+######################################################
+
+
+
+######################################################
+### PEAKY WRAP UP.start
+######################################################
+
+#' Combines fine-mapping results for all baits into a table
+#'
+#' Combines Peaky's fine-mapping results, generated separately for each bait, into a single table and stores it on disk. Marginal posterior probabilities of contact (MPPC) are in its 'rjmcmc_pos' column. Other columns' values are described in the vignette. Generates a .pdf plot for each bait by default.
+#'
+#' @param peaky_output_dir Directory which Peaky's intermediate files and results are stored in. Needs a baits_rjmcmc folder generated by \code{\link{interpret_peaky_fs}} or \code{\link{peaky_run}}. 
+#' @param plots Whether or not to generate a .pdf plot for each bait with \code{\link{peaky_plot}}. A subdirectory called 'plots' will be created if it doesn't exist.
+#' @param ... further arguments to be passed to \code{\link{peaky_plot}}, such as calling thresholds.
+#' @return List containing the output directory where the table is stored, and the table itself.
+#'
+#' @section Details:
+#' This function checks for bait_rjmcmc_*.rds files in peaky_output_dir/baits_rjmcmc, reads them, collates them, and optionally plots them.
+#
+#' @examples
+#' base = system.file("extdata",package="peaky")
+#' chicago_rds_path = paste0(base,"/chicago_output.rds")
+#' peaky_output_dir = paste0(base,"/peaky_from_chicago")
+#' \donttest{
+#' peaky_prepare_from_chicago(chicago_rds_path, peaky_output_dir, subsample_size=NA) 
+#' #Big dataset? Consider subsample_size=10e3 for speed.
+#' 
+#' for(i in 1:3){ peaky_run(peaky_output_dir,i) }
+#' #Tip: run this in parallel on a cluster by scheduling an array job and passing its elements to i.
+#' 
+#' peaky_wrapup(peaky_output_dir)
+#' }
+#' @export
+
+peaky_wrapup = function(peaky_output_dir, plots=TRUE, ...){
+  base = peaky_output_dir
+  baits_rjmcmc_dir = paste0(base,"/baits_rjmcmc")
+  plots_dir = paste0(base,"/plots")
+  
+  L = paste0(base, "/log_peaky_wrapup.txt")
+  write("WRAP-UP\n", file = L, append = FALSE, sep = "")
+  note(L,T,"Collating all interpreted RJMCMC results in: ",baits_rjmcmc_dir)
+  paths = list.files(baits_rjmcmc_dir,pattern="bait_rjmcmc_.*\\.rds",full.names=TRUE)
+  valid = file.exists(paths) & file.size(paths)>1
+  paths = paths[valid]
+  note(L,T,"Reading ",length(paths)," bait_rjmcmc_*.rds files of non-zero size...")
+  R = lapply(paths,readRDS)
+  R = rbindlist(R)
+  note(L,T,"Produced a table containing ",nrow(R)," putative interactions.")
+  out_path = paste0(base,"/peaky_output.csv")
+  note(L,T,"Saving the table at: ",out_path,".")
+  fwrite(R,out_path)
+
+  if(plots==TRUE){
+    note(L,T,"Generating a plot for each bait...\n(This is optional and takes a moment, pass plots=FALSE to skip this step.)")
+    if (!dir.exists(plots_dir)) {
+      dir.create(plots_dir, recursive = TRUE)
+    }
+    for(b in unique(R$baitID)){
+      p.b = peaky_plot(R, ...)
+      print(p.b)
+      plot_path = paste0(plots_dir,"/peaky_plot_bait_",b,".pdf")
+      ggsave(plot_path,p.b,width=16,height=13)
+      dev.off()
+    }
+    note(L,T,"All .pdf plots are stored at: ",plots_dir)
+  }
+  note(L,T,"Done.\nPlease find marginal posterior probabilities of contact (MPPC) for each putative interaction in the 'rjmcmc_pos' column of ",out_path,
+       "\n(If you were using CHiCAGO data, please note that the otherEndID and distSign columns have been renamed to preyID and dist.)")
+  return(list(output_path=out_path,output=R))
+}
+
+######################################################
+### PEAKY WRAP UP.end
+######################################################
+
+
+######################################################
+### PEAKY PLOT.start
+######################################################
+
+#' Plot a Peaky fine-mapping result
+#'
+#' Generates a plot for a single bait, showing its read counts, adjusted read counts, CHiCAGO scores (if available) and marginal posterior probabilities of contact (MPPC) across the local genome. Can be used at several stages of the pipeline, missing data will automatically be omitted.
+#'
+#' @param data A data.table containing Peaky results, as produced by \code{\link{peaky_plot}}.
+#' @param bait The bait ID or name (matches the data's b.name column) to plot.
+#' @param max_dist The maximum distance to plot, measured from the bait. Defaults to the entire region analyzed.
+#' @param mppc_threshold Threshold on Peaky's MPPC (in the 'rjmcmc_pos' column). Calls marked in orange.
+#' @param chicago_threshold Threshold on CHiCAGO scores (in the 'score' column). Calls marked in blue.
+#' @return Plot object.
+#'
+#' @section Plot legend:
+#' Green: Peaky's fitted fine-mapping model. Orange: Peaky's calls based on the threshold set. Blue: CHiCAGO calls based on the threshold set, if data is available.  
+#
+#' @examples
+#' base = system.file("extdata",package="peaky")
+#' chicago_rds_path = paste0(base,"/chicago_output.rds")
+#' peaky_output_dir = paste0(base,"/peaky_from_chicago")
+#' \donttest{
+#' peaky_prepare_from_chicago(chicago_rds_path, peaky_output_dir, subsample_size=NA) 
+#' #Big dataset? Consider subsample_size=10e3 for speed.
+#' 
+#' for(i in 1:3){ peaky_run(peaky_output_dir,i) }
+#' #Tip: run this in parallel on a cluster by scheduling an array job and passing its elements to i.
+#' 
+#' peaky_wrapup(peaky_output_dir)
+#' }
+#' @export
+
+
+peaky_plot = function(data,bait=NULL,max_dist=Inf,mppc_threshold=0.1,chicago_threshold=5){
+  if(!("b.name" %in% colnames(data))){
+    data[,b.name:=baitID]
+  }
+  
+  if(is.null(bait)){
+    random_bait = sample(unique(data$baitID),1)
+    k = data[baitID==random_bait & abs(dist)<=max_dist]
+  }else{
+    k = data[(b.name==bait | baitID==bait) & abs(dist)<=max_dist]
+  }
+  if(!nrow(k)>=2){
+    stop("no such bait")
+  }
+  
+  if("rjmcmc_pos"%in%colnames(data)){
+    k[,signif:=as.logical(rjmcmc_pos>=mppc_threshold)]
+  }else{
+    k[,signif:=FALSE]
+  }
+  
+  if("score"%in%colnames(data)){
+    k[,score_signif:=ifelse(score>=chicago_threshold,"chicago_true","chicago_false")]
+  }else{
+    k[,score_signif:="chicago_false"]
+  }
+  
+  p.N = ggplot(k,aes(x=dist)) +
+    geom_hline(yintercept=0,col="grey") +
+    geom_point(aes(y=N,col=score_signif),alpha=1,cex=5) +
+    geom_point(aes(y=N,col=signif),alpha=1,cex=3) +
+    scale_color_manual(values=c("TRUE"="orange","FALSE"=NA,"chicago_true"="cornflowerblue","chicago_false"=NA)) +
+    geom_point(aes(y=N),col="black")  +
+    theme(legend.position = "none") +
+    ggtitle(paste0(unique(k$b.name)," (",unique(k$baitID),")")) +
+    xlab("")
+  
+  if("score"%in%colnames(data)){
+    p.Cscore = ggplot(k,aes(x=dist)) +
+      geom_hline(yintercept=0,col="grey") +
+      geom_hline(yintercept = chicago_threshold,linetype="dashed",cex=2,col="cornflowerblue") +
+      geom_point(aes(y=score,col=signif),alpha=1,cex=3) +
+      scale_color_manual(values=c("TRUE"="orange","FALSE"=NA,"chicago_true"="cornflowerblue","chicago_false"=NA)) +
+      geom_point(aes(y=score),col="black")  +
+      theme(legend.position = "none") +
+      xlab("") + ylab("CHiCAGO Score")
+  }else{
+    p.Cscore=NULL
+  }
+  
+  p.residual = ggplot(k,aes(x=dist)) +
+    geom_hline(yintercept=0,col="grey") +
+    geom_point(aes(y=residual,col=score_signif),alpha=1,cex=5) +
+    geom_point(aes(y=residual,col=signif),alpha=1,cex=3) +
+    scale_color_manual(values=c("TRUE"="orange","FALSE"=NA,"chicago_true"="cornflowerblue","chicago_false"=NA)) +
+    geom_point(aes(y=residual),col="black") +
+    xlab("") + ylab("Adjusted N") +
+    theme(legend.position = "none")
+  
+  if("predicted"%in%colnames(data)){
+    p.residual = p.residual + 
+      geom_point(aes(y=predicted),cex=0.8,col="limegreen") +
+      geom_line(aes(y=predicted),col="limegreen")
+  }
+  
+  if("rjmcmc_pos"%in%colnames(data)){
+    p.mppc = ggplot(k,aes(x=dist)) +
+      geom_hline(yintercept=0,col="grey") +
+      geom_hline(yintercept = mppc_threshold,linetype="dashed",cex=2,col="orange") +
+      geom_point(aes(y=rjmcmc_pos,col=score_signif),alpha=1,cex=5) + #Only if score present!
+      geom_point(aes(y=rjmcmc_pos),col="black") +
+      scale_color_manual(values=c("TRUE"="orange","FALSE"=NA,"chicago_true"="cornflowerblue","chicago_false"=NA)) +
+      ylab("Peaky's MPPC") +
+      theme(legend.position = "none") +
+      xlab("Distance from bait (bp)")
+  }else{
+    p.mppc=NULL
+  }
+  
+  p = suppressWarnings(plot_grid(p.N,p.residual,p.Cscore,p.mppc,ncol=1,align="hv"))
+  return(p)
+}
+
+######################################################
+### PEAKY PLOT.end
+######################################################
 
 
 

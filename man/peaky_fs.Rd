@@ -4,8 +4,14 @@
 \alias{peaky_fs}
 \title{Wrapper for peaky() that interacts with the filesystem}
 \usage{
-peaky_fs(baitlist, index, output_dir, omega_power, iterations = 1e+06,
-  min_interactions = 20)
+peaky_fs(
+  baitlist,
+  index,
+  output_dir,
+  omega_power,
+  iterations = 1e+06,
+  min_interactions = 20
+)
 }
 \arguments{
 \item{baitlist}{Path to the list of baits to be processed.}
@@ -22,13 +28,15 @@ peaky_fs(baitlist, index, output_dir, omega_power, iterations = 1e+06,
 }
 \value{
 List containing the model output directory and the models themselves.
-
-Details.
-The steepness of the function to be fitted to putative peaks is determined by \eqn{\omega} according to \eqn{\beta} exp(-\eqn{|\omega * d|}), where \eqn{\beta} represents peak height and \eqn{d} the distance from the center of the peak in bp.
 }
 \description{
 Fits additive models of peaks of varying strengths in various locations to the adjusted readcounts via RJMCMC, and stores these models on disk.
 }
+\section{Details}{
+
+The steepness of the function to be fitted to putative peaks is determined by \eqn{\omega} according to \eqn{\beta} exp(-\eqn{|\omega * d|}), where \eqn{\beta} represents peak height and \eqn{d} the distance from the center of the peak in bp.
+}
+
 \examples{
 base = system.file("extdata",package="peaky")
 interactions_file = paste0(base,"/counts.tsv")
@@ -49,7 +57,7 @@ split_baits_fs(bins_dir,residuals_dir = fits_dir, indices=1:5, output_dir = bait
 
 baitlist = paste0(baits_dir,"/baitlist.txt")
 rjmcmc_dir = paste0(base,"/rjmcmc")
-omega_power = 4.7
+omega_power = -4.7
 \donttest{
 for(i in 1:3){
  peaky_fs(baitlist,i,output_dir=rjmcmc_dir,omega_power=omega_power)
