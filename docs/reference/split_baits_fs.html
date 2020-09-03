@@ -161,44 +161,44 @@
 <span class='no'>bins_dir</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/paste.html'>paste0</a></span>(<span class='no'>base</span>,<span class='st'>"/bins"</span>)
 <span class='no'>fragments_file</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/paste.html'>paste0</a></span>(<span class='no'>base</span>,<span class='st'>"/fragments.bed"</span>)
 
-<span class='fu'><a href='bin_interactions_fs.html'>bin_interactions_fs</a></span>(<span class='no'>interactions_file</span>, <span class='no'>fragments_file</span>, <span class='kw'>output_dir</span><span class='kw'>=</span><span class='no'>bins_dir</span>)</div><div class='output co'>#&gt; 31-08-2020 17:45:56
-#&gt; Reading interactions from /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/counts.tsv
-#&gt; 31-08-2020 17:45:56
-#&gt; Reading fragment information from /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/fragments.bed
-#&gt; 31-08-2020 17:45:56
+<span class='fu'><a href='bin_interactions_fs.html'>bin_interactions_fs</a></span>(<span class='no'>interactions_file</span>, <span class='no'>fragments_file</span>, <span class='kw'>output_dir</span><span class='kw'>=</span><span class='no'>bins_dir</span>)</div><div class='output co'>#&gt; 03-09-2020 03:21:52
+#&gt; Reading interactions from /tmp/RtmpmVz6Qg/temp_libpath3fa141b30fbe/peaky/extdata/counts.tsv
+#&gt; 03-09-2020 03:21:52
+#&gt; Reading fragment information from /tmp/RtmpmVz6Qg/temp_libpath3fa141b30fbe/peaky/extdata/fragments.bed
+#&gt; 03-09-2020 03:21:52
 #&gt; Calculating fragment characteristics...
-#&gt; 31-08-2020 17:45:56
+#&gt; 03-09-2020 03:21:52
 #&gt; Adding fragment characteristics for baits...
-#&gt; 31-08-2020 17:45:56
+#&gt; 03-09-2020 03:21:52
 #&gt; Adding fragment characteristics for preys...
-#&gt; 31-08-2020 17:45:56
+#&gt; 03-09-2020 03:21:52
 #&gt; Calculating interaction distances...
-#&gt; 31-08-2020 17:45:56
+#&gt; 03-09-2020 03:21:52
 #&gt; Calculating total trans-chromosomal read counts for each bait...
-#&gt; 31-08-2020 17:45:56
+#&gt; 03-09-2020 03:21:52
 #&gt; Modelling those as a function of bait chromosome...
 #&gt; GAMLSS-RS iteration 1: Global Deviance = 363.9654 
 #&gt; GAMLSS-RS iteration 2: Global Deviance = 363.9654 
-#&gt; 31-08-2020 17:45:56
+#&gt; 03-09-2020 03:21:52
 #&gt; Adding trans-chromosomal interactivity covariate for preys that were also baited (0 for preys not baited)...
-#&gt; 31-08-2020 17:45:56
+#&gt; 03-09-2020 03:21:52
 #&gt; Excluding 2 interactions that are too proximal (distance &lt; 2500 bp)...
-#&gt; 31-08-2020 17:45:56
+#&gt; 03-09-2020 03:21:52
 #&gt; Excluding 0 interactions that are too distal (distance &gt; Inf bp)...
-#&gt; 31-08-2020 17:45:56
+#&gt; 03-09-2020 03:21:52
 #&gt; Assigning 5 distance bins...
-#&gt; 31-08-2020 17:45:56
+#&gt; 03-09-2020 03:21:52
 #&gt; Done.
-#&gt; 31-08-2020 17:45:56
+#&gt; 03-09-2020 03:21:52
 #&gt; Saving binned interactions:
-#&gt; /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/bins/bin_1.rds
-#&gt; /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/bins/bin_2.rds
-#&gt; /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/bins/bin_3.rds
-#&gt; /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/bins/bin_4.rds
-#&gt; /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/bins/bin_5.rds
-#&gt; 31-08-2020 17:45:56
-#&gt; Saving bin details to /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/bins/bins.txt</div><div class='output co'>#&gt; $output_dir
-#&gt; [1] "/tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/bins"
+#&gt; /tmp/RtmpmVz6Qg/temp_libpath3fa141b30fbe/peaky/extdata/bins/bin_1.rds
+#&gt; /tmp/RtmpmVz6Qg/temp_libpath3fa141b30fbe/peaky/extdata/bins/bin_2.rds
+#&gt; /tmp/RtmpmVz6Qg/temp_libpath3fa141b30fbe/peaky/extdata/bins/bin_3.rds
+#&gt; /tmp/RtmpmVz6Qg/temp_libpath3fa141b30fbe/peaky/extdata/bins/bin_4.rds
+#&gt; /tmp/RtmpmVz6Qg/temp_libpath3fa141b30fbe/peaky/extdata/bins/bin_5.rds
+#&gt; 03-09-2020 03:21:52
+#&gt; Saving bin details to /tmp/RtmpmVz6Qg/temp_libpath3fa141b30fbe/peaky/extdata/bins/bins.txt</div><div class='output co'>#&gt; $output_dir
+#&gt; [1] "/tmp/RtmpmVz6Qg/temp_libpath3fa141b30fbe/peaky/extdata/bins"
 #&gt; 
 #&gt; $interactions
 #&gt;        baitID preyID N b.chr     b.mid b.length p.chr     p.mid p.length
@@ -214,17 +214,17 @@
 #&gt; 78053: 661722 833895 1     6 170834793     4398     Y  18220566     2150
 #&gt; 78054: 661722 835350 1     6 170834793     4398     Y  22944058     3103
 #&gt;            dist b.trans b.trans_res p.trans_res dist.bin
-#&gt;     1: -4992120     151  0.09415579           0        5
-#&gt;     2: -4957334     151  0.09415579           0        5
-#&gt;     3: -4942494     151  0.09415579           0        5
-#&gt;     4: -4939329     151  0.09415579           0        5
-#&gt;     5: -4903036     151  0.09415579           0        5
+#&gt;     1: -4992120     151   0.1116155           0        5
+#&gt;     2: -4957334     151   0.1116155           0        5
+#&gt;     3: -4942494     151   0.1116155           0        5
+#&gt;     4: -4939329     151   0.1116155           0        5
+#&gt;     5: -4903036     151   0.1116155           0        5
 #&gt;    ---                                                  
-#&gt; 78050:       NA    1719  2.21305951           0     &lt;NA&gt;
-#&gt; 78051:       NA    1719  2.21305951           0     &lt;NA&gt;
-#&gt; 78052:       NA    1719  2.21305951           0     &lt;NA&gt;
-#&gt; 78053:       NA    1719  2.21305951           0     &lt;NA&gt;
-#&gt; 78054:       NA    1719  2.21305951           0     &lt;NA&gt;
+#&gt; 78050:       NA    1719   2.2141681           0     &lt;NA&gt;
+#&gt; 78051:       NA    1719   2.2141681           0     &lt;NA&gt;
+#&gt; 78052:       NA    1719   2.2141681           0     &lt;NA&gt;
+#&gt; 78053:       NA    1719   2.2141681           0     &lt;NA&gt;
+#&gt; 78054:       NA    1719   2.2141681           0     &lt;NA&gt;
 #&gt; 
 #&gt; $bins
 #&gt;    dist.bin dist.abs.min dist.abs.max interactions
@@ -238,280 +238,12 @@
 <span class='no'>fits_dir</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/paste.html'>paste0</a></span>(<span class='no'>base</span>,<span class='st'>"/fits"</span>)
 
 <span class='kw'>for</span>(<span class='no'>bin_index</span> <span class='kw'>in</span> <span class='fl'>1</span>:<span class='fl'>5</span>){
-  <span class='fu'><a href='model_bin_fs.html'>model_bin_fs</a></span>(<span class='no'>bins_dir</span>,<span class='no'>bin_index</span>,<span class='kw'>output_dir</span><span class='kw'>=</span><span class='no'>fits_dir</span>,<span class='kw'>subsample_size</span><span class='kw'>=</span><span class='fl'>1000</span>)
-}</div><div class='output co'>#&gt; Loading bin from /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/bins/bin_1.rds
-#&gt; A truncated family of distributions from NBI has been generated 
-#&gt;  and saved under the names:  
-#&gt;  dNBI.0tr pNBI.0tr qNBI.0tr rNBI.0tr NBI.0tr 
-#&gt; The type of truncation is left 
-#&gt;  and the truncation parameter is 0  
-#&gt; 31-08-2020 17:45:56
-#&gt; Subsampling 1000/9064 interactions for the null model regression...
-#&gt; 31-08-2020 17:45:56
-#&gt; Fitting with a maximum of 200 iterations...
-#&gt; Using formula:
-#&gt; N ~ log(abs(dist)) + b.trans_res  + p.trans_res + sqrt(b.length) + sqrt(p.length)
-#&gt; GAMLSS-RS iteration 1: Global Deviance = 7817.963 
-#&gt; GAMLSS-RS iteration 2: Global Deviance = 7671.749 
-#&gt; GAMLSS-RS iteration 3: Global Deviance = 7574.145 
-#&gt; GAMLSS-RS iteration 4: Global Deviance = 7496.973 
-#&gt; GAMLSS-RS iteration 5: Global Deviance = 7465.61 
-#&gt; GAMLSS-RS iteration 6: Global Deviance = 7460.643 
-#&gt; GAMLSS-RS iteration 7: Global Deviance = 7460.274 
-#&gt; GAMLSS-RS iteration 8: Global Deviance = 7460.255 
-#&gt; 31-08-2020 17:45:57
-#&gt; Converged: YES
-#&gt; Iterations: 8
-#&gt; 
-#&gt; Coefficients:
-#&gt; (Intercept)	16.5385014373579
-#&gt;  log(abs(dist))	-1.09767977931229
-#&gt;  b.trans_res	0.214337600774251
-#&gt;  p.trans_res	NA
-#&gt;  sqrt(b.length)	-0.0042467636888258
-#&gt;  sqrt(p.length)	0.00106936002691906
-#&gt; 31-08-2020 17:45:57
-#&gt; Obtaining normalized randomized quantile residuals for the full dataset...
-#&gt; Saving fit to /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/fits/fit_1.rds...
-#&gt; 31-08-2020 17:45:57
-#&gt; Saving all residuals to /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/fits/residuals_1.rds...
-#&gt; Loading bin from /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/bins/bin_2.rds
-#&gt; A truncated family of distributions from NBI has been generated 
-#&gt;  and saved under the names:  
-#&gt;  dNBI.0tr pNBI.0tr qNBI.0tr rNBI.0tr NBI.0tr 
-#&gt; The type of truncation is left 
-#&gt;  and the truncation parameter is 0  
-#&gt; 31-08-2020 17:45:57
-#&gt; Subsampling 1000/9063 interactions for the null model regression...
-#&gt; 31-08-2020 17:45:57
-#&gt; Fitting with a maximum of 200 iterations...
-#&gt; Using formula:
-#&gt; N ~ log(abs(dist)) + b.trans_res  + p.trans_res + sqrt(b.length) + sqrt(p.length)
-#&gt; GAMLSS-RS iteration 1: Global Deviance = 4240.508 
-#&gt; GAMLSS-RS iteration 2: Global Deviance = 4239.669 
-#&gt; GAMLSS-RS iteration 3: Global Deviance = 4239.251 
-#&gt; GAMLSS-RS iteration 4: Global Deviance = 4239.02 
-#&gt; GAMLSS-RS iteration 5: Global Deviance = 4238.883 
-#&gt; GAMLSS-RS iteration 6: Global Deviance = 4238.799 
-#&gt; 31-08-2020 17:45:57
-#&gt; Converged: YES
-#&gt; Iterations: 6
-#&gt; 
-#&gt; Coefficients:
-#&gt; (Intercept)	18.4602692860144
-#&gt;  log(abs(dist))	-1.25920693941305
-#&gt;  b.trans_res	0.475914727313967
-#&gt;  p.trans_res	NA
-#&gt;  sqrt(b.length)	-0.00491030902249689
-#&gt;  sqrt(p.length)	-0.00216378230584008
-#&gt; 31-08-2020 17:45:57
-#&gt; Obtaining normalized randomized quantile residuals for the full dataset...
-#&gt; Saving fit to /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/fits/fit_2.rds...
-#&gt; 31-08-2020 17:45:57
-#&gt; Saving all residuals to /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/fits/residuals_2.rds...
-#&gt; Loading bin from /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/bins/bin_3.rds
-#&gt; A truncated family of distributions from NBI has been generated 
-#&gt;  and saved under the names:  
-#&gt;  dNBI.0tr pNBI.0tr qNBI.0tr rNBI.0tr NBI.0tr 
-#&gt; The type of truncation is left 
-#&gt;  and the truncation parameter is 0  
-#&gt; 31-08-2020 17:45:57
-#&gt; Subsampling 1000/9063 interactions for the null model regression...
-#&gt; 31-08-2020 17:45:57
-#&gt; Fitting with a maximum of 200 iterations...
-#&gt; Using formula:
-#&gt; N ~ log(abs(dist)) + b.trans_res  + p.trans_res + sqrt(b.length) + sqrt(p.length)
-#&gt; GAMLSS-RS iteration 1: Global Deviance = 2838.83 
-#&gt; GAMLSS-RS iteration 2: Global Deviance = 2824.608 
-#&gt; GAMLSS-RS iteration 3: Global Deviance = 2821.006 
-#&gt; GAMLSS-RS iteration 4: Global Deviance = 2819.653 
-#&gt; GAMLSS-RS iteration 5: Global Deviance = 2819.041 
-#&gt; GAMLSS-RS iteration 6: Global Deviance = 2818.739 
-#&gt; GAMLSS-RS iteration 7: Global Deviance = 2818.578 
-#&gt; GAMLSS-RS iteration 8: Global Deviance = 2818.49 
-#&gt; 31-08-2020 17:45:57
-#&gt; Converged: YES
-#&gt; Iterations: 8
-#&gt; 
-#&gt; Coefficients:
-#&gt; (Intercept)	25.2672078610614
-#&gt;  log(abs(dist))	-1.71219170142738
-#&gt;  b.trans_res	0.356258809942039
-#&gt;  p.trans_res	NA
-#&gt;  sqrt(b.length)	-0.00467736063108066
-#&gt;  sqrt(p.length)	-0.000870934586261226
-#&gt; 31-08-2020 17:45:57
-#&gt; Obtaining normalized randomized quantile residuals for the full dataset...
-#&gt; Saving fit to /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/fits/fit_3.rds...
-#&gt; 31-08-2020 17:45:57
-#&gt; Saving all residuals to /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/fits/residuals_3.rds...
-#&gt; Loading bin from /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/bins/bin_4.rds
-#&gt; A truncated family of distributions from NBI has been generated 
-#&gt;  and saved under the names:  
-#&gt;  dNBI.0tr pNBI.0tr qNBI.0tr rNBI.0tr NBI.0tr 
-#&gt; The type of truncation is left 
-#&gt;  and the truncation parameter is 0  
-#&gt; 31-08-2020 17:45:57
-#&gt; Subsampling 1000/9063 interactions for the null model regression...
-#&gt; 31-08-2020 17:45:57
-#&gt; Fitting with a maximum of 200 iterations...
-#&gt; Using formula:
-#&gt; N ~ log(abs(dist)) + b.trans_res  + p.trans_res + sqrt(b.length) + sqrt(p.length)
-#&gt; GAMLSS-RS iteration 1: Global Deviance = 2219.521 
-#&gt; GAMLSS-RS iteration 2: Global Deviance = 2206.709 
-#&gt; GAMLSS-RS iteration 3: Global Deviance = 2202.396 
-#&gt; GAMLSS-RS iteration 4: Global Deviance = 2200.421 
-#&gt; GAMLSS-RS iteration 5: Global Deviance = 2199.363 
-#&gt; GAMLSS-RS iteration 6: Global Deviance = 2198.735 
-#&gt; GAMLSS-RS iteration 7: Global Deviance = 2198.34 
-#&gt; GAMLSS-RS iteration 8: Global Deviance = 2198.086 
-#&gt; GAMLSS-RS iteration 9: Global Deviance = 2197.912 
-#&gt; GAMLSS-RS iteration 10: Global Deviance = 2197.79 
-#&gt; GAMLSS-RS iteration 11: Global Deviance = 2197.702 
-#&gt; 31-08-2020 17:45:58
-#&gt; Converged: YES
-#&gt; Iterations: 11
-#&gt; 
-#&gt; Coefficients:
-#&gt; (Intercept)	22.6678610828902
-#&gt;  log(abs(dist))	-1.51806894743518
-#&gt;  b.trans_res	0.378018333438826
-#&gt;  p.trans_res	NA
-#&gt;  sqrt(b.length)	-0.0071601328775684
-#&gt;  sqrt(p.length)	-0.000474388960665037
-#&gt; 31-08-2020 17:45:58
-#&gt; Obtaining normalized randomized quantile residuals for the full dataset...
-#&gt; Saving fit to /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/fits/fit_4.rds...
-#&gt; 31-08-2020 17:45:58
-#&gt; Saving all residuals to /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/fits/residuals_4.rds...
-#&gt; Loading bin from /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/bins/bin_5.rds
-#&gt; A truncated family of distributions from NBI has been generated 
-#&gt;  and saved under the names:  
-#&gt;  dNBI.0tr pNBI.0tr qNBI.0tr rNBI.0tr NBI.0tr 
-#&gt; The type of truncation is left 
-#&gt;  and the truncation parameter is 0  
-#&gt; 31-08-2020 17:45:58
-#&gt; Subsampling 1000/9064 interactions for the null model regression...
-#&gt; 31-08-2020 17:45:58
-#&gt; Fitting with a maximum of 200 iterations...
-#&gt; Using formula:
-#&gt; N ~ log(abs(dist)) + b.trans_res  + p.trans_res + sqrt(b.length) + sqrt(p.length)
-#&gt; GAMLSS-RS iteration 1: Global Deviance = 1608.663 
-#&gt; GAMLSS-RS iteration 2: Global Deviance = 1597.959 
-#&gt; GAMLSS-RS iteration 3: Global Deviance = 1592.642 
-#&gt; GAMLSS-RS iteration 4: Global Deviance = 1589.437 
-#&gt; GAMLSS-RS iteration 5: Global Deviance = 1587.283 
-#&gt; GAMLSS-RS iteration 6: Global Deviance = 1585.747 
-#&gt; GAMLSS-RS iteration 7: Global Deviance = 1584.586 
-#&gt; GAMLSS-RS iteration 8: Global Deviance = 1583.679 
-#&gt; GAMLSS-RS iteration 9: Global Deviance = 1582.96 
-#&gt; GAMLSS-RS iteration 10: Global Deviance = 1582.375 
-#&gt; GAMLSS-RS iteration 11: Global Deviance = 1581.899 
-#&gt; GAMLSS-RS iteration 12: Global Deviance = 1581.499 
-#&gt; GAMLSS-RS iteration 13: Global Deviance = 1581.161 
-#&gt; GAMLSS-RS iteration 14: Global Deviance = 1580.851 
-#&gt; GAMLSS-RS iteration 15: Global Deviance = 1580.579 
-#&gt; GAMLSS-RS iteration 16: Global Deviance = 1580.338 
-#&gt; GAMLSS-RS iteration 17: Global Deviance = 1580.149 
-#&gt; GAMLSS-RS iteration 18: Global Deviance = 1579.983 
-#&gt; GAMLSS-RS iteration 19: Global Deviance = 1579.838 
-#&gt; GAMLSS-RS iteration 20: Global Deviance = 1579.679 
-#&gt; GAMLSS-RS iteration 21: Global Deviance = 1579.534 
-#&gt; GAMLSS-RS iteration 22: Global Deviance = 1579.437 
-#&gt; 31-08-2020 17:45:59
-#&gt; Converged: YES
-#&gt; Iterations: 22
-#&gt; 
-#&gt; Coefficients:
-#&gt; (Intercept)	92.0121001471258
-#&gt;  log(abs(dist))	-6.09365233585533
-#&gt;  b.trans_res	0.205333046120645
-#&gt;  p.trans_res	NA
-#&gt;  sqrt(b.length)	0.000596462177392219
-#&gt;  sqrt(p.length)	-0.00505711406760957
-#&gt; 31-08-2020 17:45:59
-#&gt; Obtaining normalized randomized quantile residuals for the full dataset...
-#&gt; Saving fit to /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/fits/fit_5.rds...
-#&gt; 31-08-2020 17:45:59
-#&gt; Saving all residuals to /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/fits/residuals_5.rds...</div><div class='input'>
+  <span class='kw'>if</span> (<span class='fl'>FALSE</span>) <span class='fu'><a href='model_bin_fs.html'>model_bin_fs</a></span>(<span class='no'>bins_dir</span>,<span class='no'>bin_index</span>,<span class='kw'>output_dir</span><span class='kw'>=</span><span class='no'>fits_dir</span>,<span class='kw'>subsample_size</span><span class='kw'>=</span><span class='fl'>1000</span>)
+}
+
 <span class='no'>baits_dir</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/paste.html'>paste0</a></span>(<span class='no'>base</span>,<span class='st'>"/baits"</span>)
 
-<span class='fu'>split_baits_fs</span>(<span class='no'>bins_dir</span>,<span class='kw'>residuals_dir</span> <span class='kw'>=</span> <span class='no'>fits_dir</span>, <span class='kw'>indices</span><span class='kw'>=</span><span class='fl'>1</span>:<span class='fl'>5</span>, <span class='kw'>output_dir</span> <span class='kw'>=</span> <span class='no'>baits_dir</span>)</div><div class='output co'>#&gt; 31-08-2020 17:45:59
-#&gt; Loading bins...
-#&gt; /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/bins/bin_1.rds
-#&gt;  /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/bins/bin_2.rds
-#&gt;  /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/bins/bin_3.rds
-#&gt;  /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/bins/bin_4.rds
-#&gt;  /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/bins/bin_5.rds
-#&gt; 31-08-2020 17:45:59
-#&gt; Loading residuals...
-#&gt; /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/fits/residuals_1.rds
-#&gt;  /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/fits/residuals_2.rds
-#&gt;  /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/fits/residuals_3.rds
-#&gt;  /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/fits/residuals_4.rds
-#&gt;  /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/fits/residuals_5.rds
-#&gt; 31-08-2020 17:45:59
-#&gt; Calculating p-values and performing bin-wise FDR-adjustments...
-#&gt; 31-08-2020 17:45:59
-#&gt; Saving baits...
-#&gt; /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_53559.rds
-#&gt; /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_71638.rds
-#&gt; /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_95958.rds
-#&gt; /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_96180.rds
-#&gt; /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_102201.rds
-#&gt; /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_119435.rds
-#&gt; /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_119522.rds
-#&gt; /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_144385.rds
-#&gt; /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_162008.rds
-#&gt; /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_175487.rds
-#&gt; /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_203500.rds
-#&gt; /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_243669.rds
-#&gt; /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_262362.rds
-#&gt; /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_268979.rds
-#&gt; /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_272961.rds
-#&gt; /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_312780.rds
-#&gt; /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_328019.rds
-#&gt; /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_341315.rds
-#&gt; /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_363262.rds
-#&gt; /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_366588.rds
-#&gt; /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_466090.rds
-#&gt; /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_582536.rds
-#&gt; /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_618421.rds
-#&gt; /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_658681.rds
-#&gt; /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_661722.rds
-#&gt; 31-08-2020 17:45:59
-#&gt; Plotting baits...</div><div class='output co'>#&gt; 31-08-2020 17:46:01
-#&gt; Done.</div><div class='output co'>#&gt; $output_dir
-#&gt; [1] "/tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits"
-#&gt; 
-#&gt; $bait_paths
-#&gt;  [1] "/tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_53559.rds" 
-#&gt;  [2] "/tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_71638.rds" 
-#&gt;  [3] "/tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_95958.rds" 
-#&gt;  [4] "/tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_96180.rds" 
-#&gt;  [5] "/tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_102201.rds"
-#&gt;  [6] "/tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_119435.rds"
-#&gt;  [7] "/tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_119522.rds"
-#&gt;  [8] "/tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_144385.rds"
-#&gt;  [9] "/tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_162008.rds"
-#&gt; [10] "/tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_175487.rds"
-#&gt; [11] "/tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_203500.rds"
-#&gt; [12] "/tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_243669.rds"
-#&gt; [13] "/tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_262362.rds"
-#&gt; [14] "/tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_268979.rds"
-#&gt; [15] "/tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_272961.rds"
-#&gt; [16] "/tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_312780.rds"
-#&gt; [17] "/tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_328019.rds"
-#&gt; [18] "/tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_341315.rds"
-#&gt; [19] "/tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_363262.rds"
-#&gt; [20] "/tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_366588.rds"
-#&gt; [21] "/tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_466090.rds"
-#&gt; [22] "/tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_582536.rds"
-#&gt; [23] "/tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_618421.rds"
-#&gt; [24] "/tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_658681.rds"
-#&gt; [25] "/tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/baits/bait_661722.rds"
-#&gt; </div><div class='input'>
-</div></pre>
+<span class='kw'>if</span> (<span class='fl'>FALSE</span>) <span class='fu'>split_baits_fs</span>(<span class='no'>bins_dir</span>,<span class='kw'>residuals_dir</span> <span class='kw'>=</span> <span class='no'>fits_dir</span>, <span class='kw'>indices</span><span class='kw'>=</span><span class='fl'>1</span>:<span class='fl'>5</span>, <span class='kw'>output_dir</span> <span class='kw'>=</span> <span class='no'>baits_dir</span>)</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

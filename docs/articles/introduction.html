@@ -75,7 +75,7 @@
       <h1 data-toc-skip>Peaky</h1>
                         <h4 class="author">Chris Eijsbouts</h4>
             
-            <h4 class="date">2020-08-31</h4>
+            <h4 class="date">2020-09-03</h4>
       
       
       <div class="hidden name"><code>introduction.Rmd</code></div>
@@ -340,7 +340,7 @@
 ## 31-08-2020 17:46:06
 ## Obtaining normalized randomized quantile residuals for the full dataset...</code></pre>
 <div class="sourceCode" id="cb11"><html><body><pre class="r"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(<span class="no">models</span><span class="kw">[[</span><span class="fl">1</span>]]$<span class="no">fit</span>)</pre></body></html></div>
-<p><img src="introduction_files/figure-html/unnamed-chunk-3-1.png" width="672"></p>
+<p><img src="../docs/articles/introduction_files/figure-html/unnamed-chunk-3-1.png" width="672"></p>
 <pre><code>## ******************************************************************
 ##   Summary of the Randomised Quantile Residuals
 ##                            mean   =  -0.005840354 
@@ -364,7 +364,7 @@
      <span class="kw">xlab</span><span class="kw">=</span><span class="st">"Distance from bait (bp)"</span>,
      <span class="kw">ylab</span><span class="kw">=</span><span class="st">"Adjusted readcount"</span>,
      <span class="kw">main</span><span class="kw">=</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span>(<span class="st">"Bait"</span>,<span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span>(<span class="no">zoom</span>$<span class="no">baitID</span>)))</pre></body></html></div>
-<p><img src="introduction_files/figure-html/unnamed-chunk-5-1.png" width="672"> A central assumption of Peaky is that this signal stems from few direct contacts, regions above which the CHi-C signal peaks. The signal then decays amongst neighboring fragments, with which contacts are merely collateral.</p>
+<p><img src="../docs/articles/introduction_files/figure-html/unnamed-chunk-5-1.png" width="672"> A central assumption of Peaky is that this signal stems from few direct contacts, regions above which the CHi-C signal peaks. The signal then decays amongst neighboring fragments, with which contacts are merely collateral.</p>
 <p>##Joint analysis of neighboring fragments Next, Peaky identifies sets of direct contacts that explain the peaks in the adjusted readcounts. It takes a single bait and proposes direct contacts with several of its prey fragments simultaneously, at varying strengths.</p>
 <p>To determine where direct contacts occur, Peaky must be told what a peak in the adjusted readcounts looks like: how quickly would the signal decay as we consider fragments further and further away from a fragment that is directly contacted? The steepness of the expected decay is set via the parameter <span class="math inline">\(\omega\)</span>:</p>
 <p><span class="math display">\[\begin{equation}
@@ -395,7 +395,7 @@ y = \beta \exp{(-|\omega * d|)}
      <span class="kw">ylab</span><span class="kw">=</span><span class="st">"Adjusted readcount"</span>)
 <span class="fu"><a href="https://rdrr.io/r/graphics/lines.html">lines</a></span>(<span class="no">single_peak</span>$<span class="no">distance_from_peak</span>, <span class="fu"><a href="https://rdrr.io/r/stats/fitted.values.html">fitted.values</a></span>(<span class="no">fit_omega</span>), <span class="kw">col</span><span class="kw">=</span><span class="st">"red"</span>, <span class="kw">lwd</span><span class="kw">=</span><span class="fl">3</span>)
 }</pre></body></html></div>
-<p><img src="introduction_files/figure-html/unnamed-chunk-6-1.png" width="672"></p>
+<p><img src="../docs/articles/introduction_files/figure-html/unnamed-chunk-6-1.png" width="672"></p>
 <p>At this point, Peaky is ready to determine where peaks, or direct contacts, occur in the signal for the bait above. It does so iteratively, by proposing different sets (i.e. different models) of hypothetical peaks, and settling more often on more likely sets (through reversible-jump Markov chain Monte Carlo estimation). The number of sets proposed is controlled by the iterations parameter of <code><a href="../reference/peaky.html">peaky()</a></code>. It is recommended to increase the value until the results (e.g. MPPC, see below) are highly correlated between different runs of <code><a href="../reference/peaky.html">peaky()</a></code> (note that its output is not deterministic). Raw models and their likelihoods are stored in PKS, but these do not have to be inspected manually (although this is possible, e.g. to remove burn-in models or to construct trace plots). Instead, summary statistics can be calculated with <code><a href="../reference/interpret_peaky.html">interpret_peaky()</a></code>. For each fragment X, these are stored in the following columns:</p>
 <ul>
 <li>
@@ -477,7 +477,7 @@ y = \beta \exp{(-|\omega * d|)}
 <span class="fu"><a href="https://rdrr.io/r/graphics/plot.html">plot</a></span>(<span class="kw">x</span><span class="kw">=</span><span class="no">zoom</span>$<span class="no">dist</span>, <span class="kw">xlab</span><span class="kw">=</span><span class="st">"Distance from bait (bp)"</span>,
      <span class="kw">y</span><span class="kw">=</span><span class="no">zoom</span>$<span class="no">rjmcmc_pos</span>, <span class="kw">ylab</span><span class="kw">=</span><span class="st">"MPPC"</span>,
      <span class="kw">col</span><span class="kw">=</span><span class="st">"blue"</span>)</pre></body></html></div>
-<p><img src="introduction_files/figure-html/unnamed-chunk-7-1.png" width="672"> While many fragments originally had high (adjusted) readcounts, the peaks in the CHi-C signal can be explained by only 3-4 direct contacts, and MPPC values jump up where these occur.</p>
+<p><img src="../docs/articles/introduction_files/figure-html/unnamed-chunk-7-1.png" width="672"> While many fragments originally had high (adjusted) readcounts, the peaks in the CHi-C signal can be explained by only 3-4 direct contacts, and MPPC values jump up where these occur.</p>
 <p>##Filesystem version</p>
 <p>To make the software more convenient for use on a cluster, Peaky has wrapper functions that interact directly with the filesystem. These wrappers generally take integer arguments specifying which inputs (out of some directory) to work with, and save results directly to disk.</p>
 <p>The workflow is similar to (and arguably simpler than) that of the interactive version, and allows for parallelization at the following computationally intensive steps:</p>

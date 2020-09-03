@@ -38,7 +38,7 @@ interactions_file = paste0(base,"/counts.tsv")
 fragments_file = paste0(base,"/fragments.bed")
 interactions = data.table::fread(interactions_file)
 fragments = data.table::fread(fragments_file)
-
+\dontrun{
 BI = bin_interactions(interactions, fragments, bins=5)
 models = by(BI$interactions, BI$interactions$dist.bin, model_bin, subsample_size=1000)
 residuals = lapply(models, "[[", "residuals")
@@ -47,4 +47,5 @@ bins = split(BI$interactions, BI$interactions$dist.bin)
 BTS = split_baits(bins, residuals)
 
 peaky(BTS[baitID==618421], omega_power=-4.7, iterations=10e3)
+}
 }

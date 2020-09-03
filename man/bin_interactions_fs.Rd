@@ -38,7 +38,7 @@ base = system.file("extdata",package="peaky")
 interactions_file = paste0(base,"/counts.tsv")
 fragments_file = paste0(base,"/fragments.bed")
 bins_dir = paste0(base,"/bins")
-\donttest{
+\dontrun{
 BI = bin_interactions_fs(interactions_file, fragments_file, output_dir=bins_dir)
 print(BI)
 }

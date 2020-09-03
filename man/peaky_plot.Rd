@@ -38,7 +38,7 @@ Green: Peaky's fitted fine-mapping model. Orange: Peaky's calls based on the thr
 base = system.file("extdata",package="peaky")
 chicago_rds_path = paste0(base,"/chicago_output.rds")
 peaky_output_dir = paste0(base,"/peaky_from_chicago")
-\donttest{
+\dontrun{
 peaky_prepare_from_chicago(chicago_rds_path, peaky_output_dir, subsample_size=NA) 
 #Big dataset? Consider subsample_size=10e3 for speed.
 

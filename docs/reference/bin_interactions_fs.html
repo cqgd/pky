@@ -172,82 +172,10 @@
 <span class='no'>interactions_file</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/paste.html'>paste0</a></span>(<span class='no'>base</span>,<span class='st'>"/counts.tsv"</span>)
 <span class='no'>fragments_file</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/paste.html'>paste0</a></span>(<span class='no'>base</span>,<span class='st'>"/fragments.bed"</span>)
 <span class='no'>bins_dir</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/paste.html'>paste0</a></span>(<span class='no'>base</span>,<span class='st'>"/bins"</span>)
-<span class='co'># \donttest{</span>
-<span class='no'>BI</span> <span class='kw'>=</span> <span class='fu'>bin_interactions_fs</span>(<span class='no'>interactions_file</span>, <span class='no'>fragments_file</span>, <span class='kw'>output_dir</span><span class='kw'>=</span><span class='no'>bins_dir</span>)</div><div class='output co'>#&gt; 31-08-2020 16:48:04
-#&gt; Reading interactions from /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/counts.tsv
-#&gt; 31-08-2020 16:48:04
-#&gt; Reading fragment information from /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/fragments.bed
-#&gt; 31-08-2020 16:48:04
-#&gt; Calculating fragment characteristics...
-#&gt; 31-08-2020 16:48:04
-#&gt; Adding fragment characteristics for baits...
-#&gt; 31-08-2020 16:48:04
-#&gt; Adding fragment characteristics for preys...
-#&gt; 31-08-2020 16:48:04
-#&gt; Calculating interaction distances...
-#&gt; 31-08-2020 16:48:04
-#&gt; Calculating total trans-chromosomal read counts for each bait...
-#&gt; 31-08-2020 16:48:04
-#&gt; Modelling those as a function of bait chromosome...
-#&gt; GAMLSS-RS iteration 1: Global Deviance = 363.9654 
-#&gt; GAMLSS-RS iteration 2: Global Deviance = 363.9654 
-#&gt; 31-08-2020 16:48:04
-#&gt; Adding trans-chromosomal interactivity covariate for preys that were also baited (0 for preys not baited)...
-#&gt; 31-08-2020 16:48:04
-#&gt; Excluding 2 interactions that are too proximal (distance &lt; 2500 bp)...
-#&gt; 31-08-2020 16:48:04
-#&gt; Excluding 0 interactions that are too distal (distance &gt; Inf bp)...
-#&gt; 31-08-2020 16:48:04
-#&gt; Assigning 5 distance bins...
-#&gt; 31-08-2020 16:48:04
-#&gt; Done.
-#&gt; 31-08-2020 16:48:04
-#&gt; Saving binned interactions:
-#&gt; /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/bins/bin_1.rds
-#&gt; /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/bins/bin_2.rds
-#&gt; /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/bins/bin_3.rds
-#&gt; /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/bins/bin_4.rds
-#&gt; /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/bins/bin_5.rds
-#&gt; 31-08-2020 16:48:05
-#&gt; Saving bin details to /tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/bins/bins.txt</div><div class='input'><span class='fu'><a href='https://rdrr.io/r/base/print.html'>print</a></span>(<span class='no'>BI</span>)</div><div class='output co'>#&gt; $output_dir
-#&gt; [1] "/tmp/RtmpRaB2zI/temp_libpath358f53686a72/peaky/extdata/bins"
-#&gt; 
-#&gt; $interactions
-#&gt;        baitID preyID N b.chr     b.mid b.length p.chr     p.mid p.length
-#&gt;     1:  53559  52096 1     1 212337456     8519     1 207345336     1932
-#&gt;     2:  53559  52107 1     1 212337456     8519     1 207380122      891
-#&gt;     3:  53559  52112 1     1 212337456     8519     1 207394962     6067
-#&gt;     4:  53559  52113 1     1 212337456     8519     1 207398127      260
-#&gt;     5:  53559  52121 1     1 212337456     8519     1 207434420     1859
-#&gt;    ---                                                                  
-#&gt; 78050: 661722 830195 1     6 170834793     4398     X 155188600      619
-#&gt; 78051: 661722 831633 1     6 170834793     4398     Y   7238968     2825
-#&gt; 78052: 661722 832798 1     6 170834793     4398     Y  14832472     5436
-#&gt; 78053: 661722 833895 1     6 170834793     4398     Y  18220566     2150
-#&gt; 78054: 661722 835350 1     6 170834793     4398     Y  22944058     3103
-#&gt;            dist b.trans b.trans_res p.trans_res dist.bin
-#&gt;     1: -4992120     151  0.09918876           0        5
-#&gt;     2: -4957334     151  0.09918876           0        5
-#&gt;     3: -4942494     151  0.09918876           0        5
-#&gt;     4: -4939329     151  0.09918876           0        5
-#&gt;     5: -4903036     151  0.09918876           0        5
-#&gt;    ---                                                  
-#&gt; 78050:       NA    1719  2.21400352           0     &lt;NA&gt;
-#&gt; 78051:       NA    1719  2.21400352           0     &lt;NA&gt;
-#&gt; 78052:       NA    1719  2.21400352           0     &lt;NA&gt;
-#&gt; 78053:       NA    1719  2.21400352           0     &lt;NA&gt;
-#&gt; 78054:       NA    1719  2.21400352           0     &lt;NA&gt;
-#&gt; 
-#&gt; $bins
-#&gt;    dist.bin dist.abs.min dist.abs.max interactions
-#&gt; 1:        1         2907       733944         9064
-#&gt; 2:        2       734021      1590586         9063
-#&gt; 3:        3      1590733      2558841         9063
-#&gt; 4:        4      2559052      3664236         9063
-#&gt; 5:        5      3664323      4999963         9064
-#&gt; 6:     &lt;NA&gt;           NA           NA        32737
-#&gt; </div><div class='input'># }
-</div></pre>
+<span class='kw'>if</span> (<span class='fl'>FALSE</span>) {
+<span class='no'>BI</span> <span class='kw'>=</span> <span class='fu'>bin_interactions_fs</span>(<span class='no'>interactions_file</span>, <span class='no'>fragments_file</span>, <span class='kw'>output_dir</span><span class='kw'>=</span><span class='no'>bins_dir</span>)
+<span class='fu'><a href='https://rdrr.io/r/base/print.html'>print</a></span>(<span class='no'>BI</span>)
+}</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">

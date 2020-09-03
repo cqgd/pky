@@ -37,31 +37,3 @@ Fits additive models of peaks of varying strengths in various locations to the a
 The steepness of the function to be fitted to putative peaks is determined by \eqn{\omega} according to \eqn{\beta} exp(-\eqn{|\omega * d|}), where \eqn{\beta} represents peak height and \eqn{d} the distance from the center of the peak in bp.
 }
 
-\examples{
-base = system.file("extdata",package="peaky")
-interactions_file = paste0(base,"/counts.tsv")
-bins_dir = paste0(base,"/bins")
-fragments_file = paste0(base,"/fragments.bed")
-
-bin_interactions_fs(interactions_file, fragments_file, output_dir=bins_dir)
-
-fits_dir = paste0(base,"/fits")
-
-for(bin_index in 1:5){
-  model_bin_fs(bins_dir,bin_index,output_dir=fits_dir,subsample_size=1000)
-}
-
-baits_dir = paste0(base,"/baits")
-
-split_baits_fs(bins_dir,residuals_dir = fits_dir, indices=1:5, output_dir = baits_dir)
-
-baitlist = paste0(baits_dir,"/baitlist.txt")
-rjmcmc_dir = paste0(base,"/rjmcmc")
-omega_power = -4.7
-\donttest{
-for(i in 1:3){
- peaky_fs(baitlist,i,output_dir=rjmcmc_dir,omega_power=omega_power)
-}
-}
-
-}

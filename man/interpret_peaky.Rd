@@ -30,7 +30,7 @@ interactions_file = paste0(base,"/counts.tsv")
 fragments_file = paste0(base,"/fragments.bed")
 interactions = data.table::fread(interactions_file)
 fragments = data.table::fread(fragments_file)
-
+\dontrun{
 BI = bin_interactions(interactions, fragments, bins=5)
 models = by(BI$interactions, BI$interactions$dist.bin, model_bin, subsample_size=1000)
 residuals = lapply(models, "[[", "residuals")
@@ -43,4 +43,5 @@ omega_power=4.7
 PKS = peaky(relevant_bait, omega_power, iterations=1e6)
 
 interpret_peaky(relevant_bait, PKS, omega_power)
+}
 }

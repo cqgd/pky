@@ -13,6 +13,12 @@ if(exists("GO")){
   library(peaky)
 }
 
+if(exists("WEB")){
+  rm(WEB)
+  setwd("~/work/pky")
+  pkgdown::build_site()
+}
+
 #######################################################
 
 #' @importFrom cowplot plot_grid
@@ -51,7 +57,7 @@ note = function(logfile=NA,logtime=T,...){
 #' interactions = data.table::fread(interactions_file)
 #' fragments = data.table::fread(fragments_file)
 #'
-#' \donttest{BI = bin_interactions(interactions, fragments, bins=5)}
+#' \dontrun{BI = bin_interactions(interactions, fragments, bins=5)}
 #' print(BI)
 #'
 #' @export
@@ -132,7 +138,7 @@ bin_interactions = function(interactions, fragments, bins=5, min_dist=2.5e3, max
 #' interactions_file = paste0(base,"/counts.tsv")
 #' fragments_file = paste0(base,"/fragments.bed")
 #' bins_dir = paste0(base,"/bins")
-#' \donttest{
+#' \dontrun{
 #' BI = bin_interactions_fs(interactions_file, fragments_file, output_dir=bins_dir)
 #' print(BI)
 #' }
@@ -198,7 +204,7 @@ bin_interactions_fs  = function(interactions_file, fragments_file, output_dir, m
 #' interactions = data.table::fread(interactions_file)
 #' fragments = data.table::fread(fragments_file)
 #'
-#' \donttest{
+#' \dontrun{
 #' BI = bin_interactions(interactions, fragments, bins=5)
 #' BM = model_bin(BI$interactions[dist.bin==2,])
 #'
@@ -272,12 +278,12 @@ model_bin = function(bin, subsample_size=NA, gamlss_cycles=200, gamlss_crit=0.1,
 #' bins_dir = paste0(base,"/bins")
 #' fragments_file = paste0(base,"/fragments.bed")
 #'
-#' \donttest{bin_interactions_fs(interactions_file, fragments_file, output_dir=bins_dir)}
+#' \dontrun{bin_interactions_fs(interactions_file, fragments_file, output_dir=bins_dir)}
 #'
 #' fits_dir = paste0(base,"/fits")
 #'
 #' for(bin_index in 1:8){
-#'   \donttest{model_bin_fs(bins_dir,bin_index,output_dir=fits_dir)}
+#'   \dontrun{model_bin_fs(bins_dir,bin_index,output_dir=fits_dir)}
 #' }
 #' @export
 
@@ -331,13 +337,14 @@ model_bin_fs = function(bins_dir,bin_index,output_dir,subsample_size=NA,gamlss_c
 #' interactions = data.table::fread(interactions_file)
 #' fragments = data.table::fread(fragments_file)
 #'
+#'\dontrun{
 #' BI = bin_interactions(interactions, fragments, bins=5)
 #' models = by(BI$interactions, BI$interactions$dist.bin, model_bin, subsample_size=1000)
 #' residuals = lapply(models, "[[", "residuals")
 #' bins = split(BI$interactions, BI$interactions$dist.bin)
 #'
 #' split_baits(bins, residuals)
-#'
+#'}
 #' @export
 
 
@@ -384,12 +391,12 @@ split_baits = function(bins, residuals, log_file=NA){
 #' fits_dir = paste0(base,"/fits")
 #'
 #' for(bin_index in 1:5){
-#'   model_bin_fs(bins_dir,bin_index,output_dir=fits_dir,subsample_size=1000)
+#'   \dontrun{model_bin_fs(bins_dir,bin_index,output_dir=fits_dir,subsample_size=1000)}
 #' }
 #'
 #' baits_dir = paste0(base,"/baits")
 #'
-#' split_baits_fs(bins_dir,residuals_dir = fits_dir, indices=1:5, output_dir = baits_dir)
+#' \dontrun{split_baits_fs(bins_dir,residuals_dir = fits_dir, indices=1:5, output_dir = baits_dir)}
 #'
 #' @export
 
@@ -470,7 +477,7 @@ split_baits_fs = function(bins_dir, residuals_dir, indices, output_dir, plots=TR
 #' fragments_file = paste0(base,"/fragments.bed")
 #' interactions = data.table::fread(interactions_file)
 #' fragments = data.table::fread(fragments_file)
-#'
+#' \dontrun{
 #' BI = bin_interactions(interactions, fragments, bins=5)
 #' models = by(BI$interactions, BI$interactions$dist.bin, model_bin, subsample_size=1000)
 #' residuals = lapply(models, "[[", "residuals")
@@ -479,6 +486,7 @@ split_baits_fs = function(bins_dir, residuals_dir, indices, output_dir, plots=TR
 #' BTS = split_baits(bins, residuals)
 #'
 #' peaky(BTS[baitID==618421], omega_power=-4.7, iterations=10e3)
+#' }
 #' @export
 
 peaky = function(bait, omega_power, iterations=1e6, min_interactions=20, log_file=NA){
@@ -561,7 +569,7 @@ peaky = function(bait, omega_power, iterations=1e6, min_interactions=20, log_fil
 #' bin_interactions_fs(interactions_file, fragments_file, output_dir=bins_dir)
 #'
 #' fits_dir = paste0(base,"/fits")
-#'
+#'' \dontrun{
 #' for(bin_index in 1:5){
 #'   model_bin_fs(bins_dir,bin_index,output_dir=fits_dir,subsample_size=1000)
 #' }
@@ -573,7 +581,7 @@ peaky = function(bait, omega_power, iterations=1e6, min_interactions=20, log_fil
 #' baitlist = paste0(baits_dir,"/baitlist.txt")
 #' rjmcmc_dir = paste0(base,"/rjmcmc")
 #' omega_power = -4.7
-#' \donttest{
+#
 #' for(i in 1:3){
 #'  peaky_fs(baitlist,i,output_dir=rjmcmc_dir,omega_power=omega_power)
 #' }
@@ -662,7 +670,7 @@ rjmcmc_list = function(rjmcmc_dir, filename=NULL){
 #' fragments_file = paste0(base,"/fragments.bed")
 #' interactions = data.table::fread(interactions_file)
 #' fragments = data.table::fread(fragments_file)
-#'
+#' \dontrun{
 #' BI = bin_interactions(interactions, fragments, bins=5)
 #' models = by(BI$interactions, BI$interactions$dist.bin, model_bin, subsample_size=1000)
 #' residuals = lapply(models, "[[", "residuals")
@@ -675,6 +683,7 @@ rjmcmc_list = function(rjmcmc_dir, filename=NULL){
 #' PKS = peaky(relevant_bait, omega_power, iterations=1e6)
 #'
 #' interpret_peaky(relevant_bait, PKS, omega_power)
+#' }
 #' @export
 
 interpret_peaky = function(bait, peaks, omega_power, log_file=NA){
@@ -765,6 +774,7 @@ interpret_peaky = function(bait, peaks, omega_power, log_file=NA){
 #' bins_dir = paste0(base,"/bins")
 #' fragments_file = paste0(base,"/fragments.bed")
 #'
+#' \dontrun{
 #' bin_interactions_fs(interactions_file, fragments_file, output_dir=bins_dir)
 #'
 #' fits_dir = paste0(base,"/fits")
@@ -780,7 +790,7 @@ interpret_peaky = function(bait, peaks, omega_power, log_file=NA){
 #' baitlist = paste0(baits_dir,"/baitlist.txt")
 #' rjmcmc_dir = paste0(base,"/rjmcmc")
 #' omega_power = 4.7
-#' \donttest{
+
 #' for(i in 1:3){
 #'  peaky_fs(baitlist,i,output_dir=rjmcmc_dir,omega_power=omega_power)
 #' }
@@ -847,7 +857,7 @@ interpret_peaky_fs = function(rjmcmclist, index, baits_dir, output_dir, omega_po
 #' base = system.file("extdata",package="peaky")
 #' chicago_rds_path = paste0(base,"/chicago_output.rds")
 #' peaky_output_dir = paste0(base,"/peaky_from_chicago")
-#' \donttest{
+#' \dontrun{
 #' peaky_prepare_from_chicago(chicago_rds_path, peaky_output_dir, subsample_size=NA) 
 #' #Big dataset? Consider subsample_size=10e3 for speed.
 #' 
@@ -949,7 +959,7 @@ peaky_prepare_from_chicago = function(chicago_rds_path,peaky_output_dir,chicago_
 #' base = system.file("extdata",package="peaky")
 #' chicago_rds_path = paste0(base,"/chicago_output.rds")
 #' peaky_output_dir = paste0(base,"/peaky_from_chicago")
-#' \donttest{
+#' \dontrun{
 #' peaky_prepare_from_chicago(chicago_rds_path, peaky_output_dir, subsample_size=NA) 
 #' #Big dataset? Consider subsample_size=10e3 for speed.
 #' 
@@ -1032,7 +1042,7 @@ peaky_run = function (peaky_output_dir, index, omega_power=-4, iterations = 1e+0
 #' base = system.file("extdata",package="peaky")
 #' chicago_rds_path = paste0(base,"/chicago_output.rds")
 #' peaky_output_dir = paste0(base,"/peaky_from_chicago")
-#' \donttest{
+#' \dontrun{
 #' peaky_prepare_from_chicago(chicago_rds_path, peaky_output_dir, subsample_size=NA) 
 #' #Big dataset? Consider subsample_size=10e3 for speed.
 #' 
@@ -1108,7 +1118,7 @@ peaky_wrapup = function(peaky_output_dir, plots=TRUE, ...){
 #' base = system.file("extdata",package="peaky")
 #' chicago_rds_path = paste0(base,"/chicago_output.rds")
 #' peaky_output_dir = paste0(base,"/peaky_from_chicago")
-#' \donttest{
+#' \dontrun{
 #' peaky_prepare_from_chicago(chicago_rds_path, peaky_output_dir, subsample_size=NA) 
 #' #Big dataset? Consider subsample_size=10e3 for speed.
 #' 

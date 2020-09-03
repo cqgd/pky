@@ -32,6 +32,7 @@ interactions_file = paste0(base,"/counts.tsv")
 bins_dir = paste0(base,"/bins")
 fragments_file = paste0(base,"/fragments.bed")
 
+\dontrun{
 bin_interactions_fs(interactions_file, fragments_file, output_dir=bins_dir)
 
 fits_dir = paste0(base,"/fits")
@@ -47,7 +48,6 @@ split_baits_fs(bins_dir,residuals_dir = fits_dir, indices=1:5, output_dir = bait
 baitlist = paste0(baits_dir,"/baitlist.txt")
 rjmcmc_dir = paste0(base,"/rjmcmc")
 omega_power = 4.7
-\donttest{
 for(i in 1:3){
  peaky_fs(baitlist,i,output_dir=rjmcmc_dir,omega_power=omega_power)
 }

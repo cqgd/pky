@@ -44,11 +44,11 @@ interactions_file = paste0(base,"/counts.tsv")
 bins_dir = paste0(base,"/bins")
 fragments_file = paste0(base,"/fragments.bed")
 
-\donttest{bin_interactions_fs(interactions_file, fragments_file, output_dir=bins_dir)}
+\dontrun{bin_interactions_fs(interactions_file, fragments_file, output_dir=bins_dir)}
 
 fits_dir = paste0(base,"/fits")
 
 for(bin_index in 1:8){
-  \donttest{model_bin_fs(bins_dir,bin_index,output_dir=fits_dir)}
+  \dontrun{model_bin_fs(bins_dir,bin_index,output_dir=fits_dir)}
 }
 }

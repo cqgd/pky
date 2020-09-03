@@ -34,11 +34,11 @@ bin_interactions_fs(interactions_file, fragments_file, output_dir=bins_dir)
 fits_dir = paste0(base,"/fits")
 
 for(bin_index in 1:5){
-  model_bin_fs(bins_dir,bin_index,output_dir=fits_dir,subsample_size=1000)
+  \dontrun{model_bin_fs(bins_dir,bin_index,output_dir=fits_dir,subsample_size=1000)}
 }
 
 baits_dir = paste0(base,"/baits")
 
-split_baits_fs(bins_dir,residuals_dir = fits_dir, indices=1:5, output_dir = baits_dir)
+\dontrun{split_baits_fs(bins_dir,residuals_dir = fits_dir, indices=1:5, output_dir = baits_dir)}
 
 }

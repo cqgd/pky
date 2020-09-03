@@ -41,7 +41,7 @@ fragments_file = paste0(base,"/fragments.bed")
 interactions = data.table::fread(interactions_file)
 fragments = data.table::fread(fragments_file)
 
-\donttest{BI = bin_interactions(interactions, fragments, bins=5)}
+\dontrun{BI = bin_interactions(interactions, fragments, bins=5)}
 print(BI)
 
 }

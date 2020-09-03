@@ -26,11 +26,12 @@ fragments_file = paste0(base,"/fragments.bed")
 interactions = data.table::fread(interactions_file)
 fragments = data.table::fread(fragments_file)
 
+\dontrun{
 BI = bin_interactions(interactions, fragments, bins=5)
 models = by(BI$interactions, BI$interactions$dist.bin, model_bin, subsample_size=1000)
 residuals = lapply(models, "[[", "residuals")
 bins = split(BI$interactions, BI$interactions$dist.bin)
 
 split_baits(bins, residuals)
-
+}
 }

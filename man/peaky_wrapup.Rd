@@ -28,7 +28,7 @@ This function checks for bait_rjmcmc_*.rds files in peaky_output_dir/baits_rjmcm
 base = system.file("extdata",package="peaky")
 chicago_rds_path = paste0(base,"/chicago_output.rds")
 peaky_output_dir = paste0(base,"/peaky_from_chicago")
-\donttest{
+\dontrun{
 peaky_prepare_from_chicago(chicago_rds_path, peaky_output_dir, subsample_size=NA) 
 #Big dataset? Consider subsample_size=10e3 for speed.
 
