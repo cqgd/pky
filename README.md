@@ -16,3 +16,7 @@ On a fresh installation of Ubuntu, the dependencies also require `libssl-dev` an
 sudo apt-get update
 sudo apt-get install libssl-dev libcurl4-openssl-dev
 ```
+
+##Tutorial
+To finemap interactions from scratch, starting with interaction counts (N between fragment A and B), see the [standard workflow tutorial](https://cqgd.github.io/pky/articles/introduction.html).
+To finemap interactions previously called by CHiCAGO, try the [example code for CHiCAGO-based analyses here](https://cqgd.github.io/pky/reference/peaky_prepare_from_chicago.html).
