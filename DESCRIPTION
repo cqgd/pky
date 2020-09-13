@@ -1,7 +1,7 @@
 Package: peaky
 Title: Capture Hi-C calling algorithm
 Version: 0.0.0.9002
-Authors@R: c(person("Chris", "Eijsbouts", email = "c@q.gd", role = c("aut", "cre")), person("Chris", "Wallace", email = "cew54@cam.ac.uk", role = c("aut", "cre")))
+Authors@R: c(person("Chris", "Eijsbouts", email = "c@q.gd", role = c("aut", "cre")), person("Chris", "Wallace", email = "cew54@cam.ac.uk", role = c("aut")))
 Description: Peaky maps physical contacts between different regions of DNA by recognizing peaks in a Capture Hi-C (CHi-C) signal. It accounts for technical and biological noise, and subsequently finds DNA fragments around which the residual signal peaks and then decays with distance. The algorithm finds sets of locations at which peaks of varying strengths combinedly explain the normalized CHi-C signal. 
 Depends: gamlss.tr, R2BGLiMS
 Imports: data.table, gamlss, ggplot2

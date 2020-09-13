@@ -75,10 +75,12 @@ plot(x=zoom$dist,
      ylab="Adjusted readcount",
      main=paste("Bait",unique(zoom$baitID)))
 ```
+
 A central assumption of Peaky is that this signal stems from few direct contacts, regions above which the CHi-C signal peaks. The signal then decays amongst neighboring fragments, with which contacts are merely collateral. 
 
 
-##Joint analysis of neighboring fragments
+## Joint analysis of neighboring fragments
+
 Next, Peaky identifies sets of direct contacts that explain the peaks in the adjusted readcounts. It takes a single bait and proposes direct contacts with several of its prey fragments simultaneously, at varying strengths.  
 
 To determine where direct contacts occur, Peaky must be told what a peak in the adjusted readcounts looks like: how quickly would the signal decay as we consider fragments further and further away from a fragment that is directly contacted?  The steepness of the expected decay is set via the parameter $\omega$:
@@ -150,10 +152,11 @@ plot(x=zoom$dist, xlab="Distance from bait (bp)",
 plot(x=zoom$dist, xlab="Distance from bait (bp)",
      y=zoom$rjmcmc_pos, ylab="MPPC",
      col="blue")
-```     
+```
+
 While many fragments originally had high (adjusted) readcounts, the peaks in the CHi-C signal can be explained by only 3-4 direct contacts, and MPPC values jump up where these occur.
 
-##Filesystem version
+## Filesystem version
 
 To make the software more convenient for use on a cluster, Peaky has wrapper functions that interact directly with the filesystem. These wrappers generally take integer arguments specifying which inputs (out of some directory) to work with, and save results directly to disk. 
 

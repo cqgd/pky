@@ -3,7 +3,7 @@ pkgdown: 1.5.1
 pkgdown_sha: ~
 articles:
   introduction: introduction.html
-last_built: 2020-09-13T10:42Z
+last_built: 2020-09-13T10:57Z
 urls:
   reference: http://cqgd.github.io/pky/reference
   article: http://cqgd.github.io/pky/articles
