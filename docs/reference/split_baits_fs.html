@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">Peaky</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9001</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9002</span>
       </span>
     </div>
 
@@ -161,44 +161,44 @@
 <span class='no'>bins_dir</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/paste.html'>paste0</a></span>(<span class='no'>base</span>,<span class='st'>"/bins"</span>)
 <span class='no'>fragments_file</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/paste.html'>paste0</a></span>(<span class='no'>base</span>,<span class='st'>"/fragments.bed"</span>)
 
-<span class='fu'><a href='bin_interactions_fs.html'>bin_interactions_fs</a></span>(<span class='no'>interactions_file</span>, <span class='no'>fragments_file</span>, <span class='kw'>output_dir</span><span class='kw'>=</span><span class='no'>bins_dir</span>)</div><div class='output co'>#&gt; 03-09-2020 03:21:52
-#&gt; Reading interactions from /tmp/RtmpmVz6Qg/temp_libpath3fa141b30fbe/peaky/extdata/counts.tsv
-#&gt; 03-09-2020 03:21:52
-#&gt; Reading fragment information from /tmp/RtmpmVz6Qg/temp_libpath3fa141b30fbe/peaky/extdata/fragments.bed
-#&gt; 03-09-2020 03:21:52
+<span class='fu'><a href='bin_interactions_fs.html'>bin_interactions_fs</a></span>(<span class='no'>interactions_file</span>, <span class='no'>fragments_file</span>, <span class='kw'>output_dir</span><span class='kw'>=</span><span class='no'>bins_dir</span>)</div><div class='output co'>#&gt; 13-09-2020 12:43:02
+#&gt; Reading interactions from /home/cq/R/x86_64-pc-linux-gnu-library/3.6/peaky/extdata/counts.tsv
+#&gt; 13-09-2020 12:43:02
+#&gt; Reading fragment information from /home/cq/R/x86_64-pc-linux-gnu-library/3.6/peaky/extdata/fragments.bed
+#&gt; 13-09-2020 12:43:02
 #&gt; Calculating fragment characteristics...
-#&gt; 03-09-2020 03:21:52
+#&gt; 13-09-2020 12:43:02
 #&gt; Adding fragment characteristics for baits...
-#&gt; 03-09-2020 03:21:52
+#&gt; 13-09-2020 12:43:02
 #&gt; Adding fragment characteristics for preys...
-#&gt; 03-09-2020 03:21:52
+#&gt; 13-09-2020 12:43:02
 #&gt; Calculating interaction distances...
-#&gt; 03-09-2020 03:21:52
+#&gt; 13-09-2020 12:43:02
 #&gt; Calculating total trans-chromosomal read counts for each bait...
-#&gt; 03-09-2020 03:21:52
+#&gt; 13-09-2020 12:43:02
 #&gt; Modelling those as a function of bait chromosome...
 #&gt; GAMLSS-RS iteration 1: Global Deviance = 363.9654 
 #&gt; GAMLSS-RS iteration 2: Global Deviance = 363.9654 
-#&gt; 03-09-2020 03:21:52
+#&gt; 13-09-2020 12:43:02
 #&gt; Adding trans-chromosomal interactivity covariate for preys that were also baited (0 for preys not baited)...
-#&gt; 03-09-2020 03:21:52
+#&gt; 13-09-2020 12:43:02
 #&gt; Excluding 2 interactions that are too proximal (distance &lt; 2500 bp)...
-#&gt; 03-09-2020 03:21:52
+#&gt; 13-09-2020 12:43:02
 #&gt; Excluding 0 interactions that are too distal (distance &gt; Inf bp)...
-#&gt; 03-09-2020 03:21:52
+#&gt; 13-09-2020 12:43:02
 #&gt; Assigning 5 distance bins...
-#&gt; 03-09-2020 03:21:52
+#&gt; 13-09-2020 12:43:02
 #&gt; Done.
-#&gt; 03-09-2020 03:21:52
+#&gt; 13-09-2020 12:43:02
 #&gt; Saving binned interactions:
-#&gt; /tmp/RtmpmVz6Qg/temp_libpath3fa141b30fbe/peaky/extdata/bins/bin_1.rds
-#&gt; /tmp/RtmpmVz6Qg/temp_libpath3fa141b30fbe/peaky/extdata/bins/bin_2.rds
-#&gt; /tmp/RtmpmVz6Qg/temp_libpath3fa141b30fbe/peaky/extdata/bins/bin_3.rds
-#&gt; /tmp/RtmpmVz6Qg/temp_libpath3fa141b30fbe/peaky/extdata/bins/bin_4.rds
-#&gt; /tmp/RtmpmVz6Qg/temp_libpath3fa141b30fbe/peaky/extdata/bins/bin_5.rds
-#&gt; 03-09-2020 03:21:52
-#&gt; Saving bin details to /tmp/RtmpmVz6Qg/temp_libpath3fa141b30fbe/peaky/extdata/bins/bins.txt</div><div class='output co'>#&gt; $output_dir
-#&gt; [1] "/tmp/RtmpmVz6Qg/temp_libpath3fa141b30fbe/peaky/extdata/bins"
+#&gt; /home/cq/R/x86_64-pc-linux-gnu-library/3.6/peaky/extdata/bins/bin_1.rds
+#&gt; /home/cq/R/x86_64-pc-linux-gnu-library/3.6/peaky/extdata/bins/bin_2.rds
+#&gt; /home/cq/R/x86_64-pc-linux-gnu-library/3.6/peaky/extdata/bins/bin_3.rds
+#&gt; /home/cq/R/x86_64-pc-linux-gnu-library/3.6/peaky/extdata/bins/bin_4.rds
+#&gt; /home/cq/R/x86_64-pc-linux-gnu-library/3.6/peaky/extdata/bins/bin_5.rds
+#&gt; 13-09-2020 12:43:02
+#&gt; Saving bin details to /home/cq/R/x86_64-pc-linux-gnu-library/3.6/peaky/extdata/bins/bins.txt</div><div class='output co'>#&gt; $output_dir
+#&gt; [1] "/home/cq/R/x86_64-pc-linux-gnu-library/3.6/peaky/extdata/bins"
 #&gt; 
 #&gt; $interactions
 #&gt;        baitID preyID N b.chr     b.mid b.length p.chr     p.mid p.length
@@ -255,7 +255,7 @@
 
       <footer>
       <div class="copyright">
-  <p>Developed by Chris Eijsbouts.</p>
+  <p>Developed by Chris Eijsbouts, Chris Wallace.</p>
 </div>
 
 <div class="pkgdown">
