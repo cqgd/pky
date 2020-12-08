@@ -1078,7 +1078,7 @@ peaky_wrapup = function(peaky_output_dir, plots=TRUE, ...){
       dir.create(plots_dir, recursive = TRUE)
     }
     for(b in unique(R$baitID)){
-      p.b = peaky_plot(R, ...)
+      p.b = peaky_plot(R, bait=b, ...)
       print(p.b)
       plot_path = paste0(plots_dir,"/peaky_plot_bait_",b,".pdf")
       ggsave(plot_path,p.b,width=16,height=13)

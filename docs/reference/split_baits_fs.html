@@ -161,44 +161,44 @@
 <span class='no'>bins_dir</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/paste.html'>paste0</a></span>(<span class='no'>base</span>,<span class='st'>"/bins"</span>)
 <span class='no'>fragments_file</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/paste.html'>paste0</a></span>(<span class='no'>base</span>,<span class='st'>"/fragments.bed"</span>)
 
-<span class='fu'><a href='bin_interactions_fs.html'>bin_interactions_fs</a></span>(<span class='no'>interactions_file</span>, <span class='no'>fragments_file</span>, <span class='kw'>output_dir</span><span class='kw'>=</span><span class='no'>bins_dir</span>)</div><div class='output co'>#&gt; 13-09-2020 12:57:16
-#&gt; Reading interactions from /tmp/RtmpZbxw1h/temp_libpath3823568dc28/peaky/extdata/counts.tsv
-#&gt; 13-09-2020 12:57:16
-#&gt; Reading fragment information from /tmp/RtmpZbxw1h/temp_libpath3823568dc28/peaky/extdata/fragments.bed
-#&gt; 13-09-2020 12:57:16
+<span class='fu'><a href='bin_interactions_fs.html'>bin_interactions_fs</a></span>(<span class='no'>interactions_file</span>, <span class='no'>fragments_file</span>, <span class='kw'>output_dir</span><span class='kw'>=</span><span class='no'>bins_dir</span>)</div><div class='output co'>#&gt; 13-09-2020 13:01:56
+#&gt; Reading interactions from /tmp/RtmpZbxw1h/temp_libpath38210020903/peaky/extdata/counts.tsv
+#&gt; 13-09-2020 13:01:56
+#&gt; Reading fragment information from /tmp/RtmpZbxw1h/temp_libpath38210020903/peaky/extdata/fragments.bed
+#&gt; 13-09-2020 13:01:56
 #&gt; Calculating fragment characteristics...
-#&gt; 13-09-2020 12:57:16
+#&gt; 13-09-2020 13:01:56
 #&gt; Adding fragment characteristics for baits...
-#&gt; 13-09-2020 12:57:16
+#&gt; 13-09-2020 13:01:56
 #&gt; Adding fragment characteristics for preys...
-#&gt; 13-09-2020 12:57:16
+#&gt; 13-09-2020 13:01:56
 #&gt; Calculating interaction distances...
-#&gt; 13-09-2020 12:57:16
+#&gt; 13-09-2020 13:01:56
 #&gt; Calculating total trans-chromosomal read counts for each bait...
-#&gt; 13-09-2020 12:57:16
+#&gt; 13-09-2020 13:01:56
 #&gt; Modelling those as a function of bait chromosome...
 #&gt; GAMLSS-RS iteration 1: Global Deviance = 363.9654 
 #&gt; GAMLSS-RS iteration 2: Global Deviance = 363.9654 
-#&gt; 13-09-2020 12:57:16
+#&gt; 13-09-2020 13:01:56
 #&gt; Adding trans-chromosomal interactivity covariate for preys that were also baited (0 for preys not baited)...
-#&gt; 13-09-2020 12:57:16
+#&gt; 13-09-2020 13:01:56
 #&gt; Excluding 2 interactions that are too proximal (distance &lt; 2500 bp)...
-#&gt; 13-09-2020 12:57:16
+#&gt; 13-09-2020 13:01:56
 #&gt; Excluding 0 interactions that are too distal (distance &gt; Inf bp)...
-#&gt; 13-09-2020 12:57:16
+#&gt; 13-09-2020 13:01:56
 #&gt; Assigning 5 distance bins...
-#&gt; 13-09-2020 12:57:16
+#&gt; 13-09-2020 13:01:56
 #&gt; Done.
-#&gt; 13-09-2020 12:57:16
+#&gt; 13-09-2020 13:01:56
 #&gt; Saving binned interactions:
-#&gt; /tmp/RtmpZbxw1h/temp_libpath3823568dc28/peaky/extdata/bins/bin_1.rds
-#&gt; /tmp/RtmpZbxw1h/temp_libpath3823568dc28/peaky/extdata/bins/bin_2.rds
-#&gt; /tmp/RtmpZbxw1h/temp_libpath3823568dc28/peaky/extdata/bins/bin_3.rds
-#&gt; /tmp/RtmpZbxw1h/temp_libpath3823568dc28/peaky/extdata/bins/bin_4.rds
-#&gt; /tmp/RtmpZbxw1h/temp_libpath3823568dc28/peaky/extdata/bins/bin_5.rds
-#&gt; 13-09-2020 12:57:16
-#&gt; Saving bin details to /tmp/RtmpZbxw1h/temp_libpath3823568dc28/peaky/extdata/bins/bins.txt</div><div class='output co'>#&gt; $output_dir
-#&gt; [1] "/tmp/RtmpZbxw1h/temp_libpath3823568dc28/peaky/extdata/bins"
+#&gt; /tmp/RtmpZbxw1h/temp_libpath38210020903/peaky/extdata/bins/bin_1.rds
+#&gt; /tmp/RtmpZbxw1h/temp_libpath38210020903/peaky/extdata/bins/bin_2.rds
+#&gt; /tmp/RtmpZbxw1h/temp_libpath38210020903/peaky/extdata/bins/bin_3.rds
+#&gt; /tmp/RtmpZbxw1h/temp_libpath38210020903/peaky/extdata/bins/bin_4.rds
+#&gt; /tmp/RtmpZbxw1h/temp_libpath38210020903/peaky/extdata/bins/bin_5.rds
+#&gt; 13-09-2020 13:01:56
+#&gt; Saving bin details to /tmp/RtmpZbxw1h/temp_libpath38210020903/peaky/extdata/bins/bins.txt</div><div class='output co'>#&gt; $output_dir
+#&gt; [1] "/tmp/RtmpZbxw1h/temp_libpath38210020903/peaky/extdata/bins"
 #&gt; 
 #&gt; $interactions
 #&gt;        baitID preyID N b.chr     b.mid b.length p.chr     p.mid p.length
