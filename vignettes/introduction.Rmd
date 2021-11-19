@@ -189,7 +189,7 @@ baitlist = paste0(baits_dir,"/baitlist.txt")
 rjmcmc_dir = paste0(base,"/rjmcmc")
 omega_power = -5
 
-for(i in 1:1){
+for(i in 1:length(readLines(baitlist))){
  peaky_fs(baitlist,i,output_dir=rjmcmc_dir,omega_power=omega_power)
 }
 
@@ -197,7 +197,35 @@ rjmcmc_list(rjmcmc_dir)
 
 rjmcmclist = paste0(rjmcmc_dir,"/rjmcmclist.txt")
 baits_rjmcmc_dir = paste0(base,"/baits_rjmcmc")
-interpret_peaky_fs(rjmcmclist,1,baits_dir,baits_rjmcmc_dir,omega_power)
+
+for(i in 1:length(readLines(rjmcmclist))){
+  interpret_peaky_fs(rjmcmclist,i,baits_dir,baits_rjmcmc_dir,omega_power)
+}
 ```
 
 After running the code above, results should be neatly saved in the package's directory. 
+
+An example of running peaky_fs in parallel: 
+
+```R
+# create a wrapper for peaky_fs that will pass index as the first parameter:
+sneaky_peaky_fs = function(i, baitlist, output_dir, omega_power){
+  # a wrapper to run peaky_fs, but giving the baitlist as the first argument
+  peaky::peaky_fs(baitlist, i , output_dir = output_dir, omega_power=-5)
+}
+
+# create a vector of bait indexes
+indexes =  1:length(readLines(baitlist))
+
+# initiate a cluster named `cl` which will use the number of `threads`
+cl = parallel::makeCluster(getOption('mc.cores', threads))
+
+# load the library peaky into each thread
+parallel::clusterCall(cl, function() library(peaky))
+
+# iterate through indices and apply `sneaky_peaky_fs` to each line of the baitist
+parallel::parLapply(indexes, sneaky_peaky_fs, baitlist=baitlist, output_dir = rjmcmc_dir, omega_power=-5, cl = cl)
+
+# stop cluster
+parallel::stopCluster(cl)
+```
